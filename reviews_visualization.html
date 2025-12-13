@@ -9,108 +9,169 @@
         
         :root {
             --bg-primary: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            --bg-card: rgba(255,255,255,0.05);
+            --bg-card: rgba(255,255,255,0.06);
+            --bg-card-solid: #232946;
             --text-primary: #eee;
-            --text-secondary: #888;
-            --text-muted: #aaa;
-            --border-color: rgba(255,255,255,0.1);
+            --text-secondary: #9ca3af;
+            --text-muted: #6b7280;
+            --border-color: rgba(255,255,255,0.08);
             --accent: #e94560;
+            --glow-color: rgba(233, 69, 96, 0.4);
+            --cell-glow: rgba(255,255,255,0.25);
         }
         
         body.light {
             --bg-primary: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            --bg-card: rgba(0,0,0,0.03);
+            --bg-card: rgba(0,0,0,0.04);
+            --bg-card-solid: #ffffff;
             --text-primary: #1e293b;
             --text-secondary: #64748b;
             --text-muted: #94a3b8;
-            --border-color: rgba(0,0,0,0.1);
+            --border-color: rgba(0,0,0,0.08);
             --accent: #dc2626;
+            --glow-color: rgba(220, 38, 38, 0.3);
+            --cell-glow: rgba(0,0,0,0.15);
         }
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: var(--bg-primary);
+            background-attachment: fixed;
             color: var(--text-primary);
             min-height: 100vh;
-            padding: 16px;
+            padding: 12px;
             font-size: 14px;
+            -webkit-tap-highlight-color: transparent;
         }
+        
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
+            padding: 0 2px;
         }
         .title {
-            font-size: 22px;
+            font-size: 20px;
             font-weight: 700;
             color: var(--accent);
+            letter-spacing: -0.5px;
         }
         .theme-toggle {
-            padding: 8px 14px;
+            padding: 8px 12px;
             border: 1px solid var(--border-color);
             border-radius: 20px;
             background: var(--bg-card);
             color: var(--text-primary);
-            font-size: 13px;
+            font-size: 12px;
             cursor: pointer;
+            transition: all 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
         }
+        .theme-toggle:active {
+            transform: scale(0.95);
+        }
+        
         .section-title {
-            font-size: 14px;
-            color: var(--text-secondary);
-            margin: 18px 0 10px;
+            font-size: 11px;
+            color: var(--text-muted);
+            margin: 16px 0 8px;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
+            font-weight: 600;
         }
+        
+        /* Score Tiers Section */
+        .score-tiers {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+        .tier-card {
+            background: var(--bg-card);
+            border-radius: 10px;
+            padding: 10px 4px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            transition: transform 0.15s ease;
+        }
+        .tier-card:active {
+            transform: scale(0.97);
+        }
+        .tier-value {
+            font-size: 18px;
+            font-weight: 700;
+        }
+        .tier-label {
+            font-size: 9px;
+            color: var(--text-muted);
+            margin-top: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .tier-range {
+            font-size: 8px;
+            color: var(--text-muted);
+            opacity: 0.7;
+        }
+        .tier-card.perfect .tier-value { color: #15803d; }
+        .tier-card.vhigh .tier-value { color: #22c55e; }
+        .tier-card.high .tier-value { color: #86efac; }
+        .tier-card.medium .tier-value { color: #f59e0b; }
+        .tier-card.low .tier-value { color: #ef4444; }
+        
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin-bottom: 14px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
         }
+        .stat-card.missing-rev .stat-value { color: #f97316; }
         .stats-grid.four-col {
             grid-template-columns: repeat(4, 1fr);
         }
         .stat-card {
             background: var(--bg-card);
-            border-radius: 12px;
-            padding: 14px 10px;
+            border-radius: 10px;
+            padding: 12px 8px;
             text-align: center;
             border: 1px solid var(--border-color);
         }
-        .stat-card.small { padding: 10px 6px; }
+        .stat-card.small { padding: 8px 4px; }
         .stat-value {
-            font-size: 28px;
+            font-size: 24px;
             font-weight: 700;
         }
-        .stat-card.small .stat-value { font-size: 22px; }
+        .stat-card.small .stat-value { font-size: 18px; }
         .stat-label {
-            font-size: 12px;
+            font-size: 10px;
             color: var(--text-secondary);
-            margin-top: 4px;
+            margin-top: 2px;
         }
         .stat-pct {
-            font-size: 13px;
+            font-size: 10px;
             color: var(--text-muted);
         }
         .stat-card.total .stat-value { color: #60a5fa; }
         .stat-card.reviewed .stat-value { color: #4ade80; }
         .stat-card.missing .stat-value { color: #ef4444; }
-        .stat-card.high .stat-value { color: #fbbf24; }
         .stat-card.r3 .stat-value { color: #22c55e; }
         .stat-card.r2 .stat-value { color: #a3e635; }
         .stat-card.r1 .stat-value { color: #fbbf24; }
         .stat-card.r0 .stat-value { color: #ef4444; }
         
-        .dist-bar-container { margin-bottom: 14px; }
+        .dist-bar-container { margin-bottom: 12px; }
         .dist-label {
-            font-size: 13px;
-            color: var(--text-secondary);
+            font-size: 11px;
+            color: var(--text-muted);
             margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         .dist-bar {
-            height: 24px;
-            border-radius: 12px;
+            height: 22px;
+            border-radius: 11px;
             overflow: hidden;
             display: flex;
             background: var(--bg-card);
@@ -120,105 +181,173 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 600;
             color: #fff;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-            min-width: 24px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+            min-width: 20px;
         }
-        .dist-segment.r3 { background: #22c55e; }
-        .dist-segment.r2 { background: #a3e635; }
-        .dist-segment.r1 { background: #fbbf24; }
-        .dist-segment.r0 { background: #ef4444; }
+        .dist-segment.r3 { background: linear-gradient(135deg, #22c55e, #16a34a); }
+        .dist-segment.r2 { background: linear-gradient(135deg, #a3e635, #84cc16); }
+        .dist-segment.r1 { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
+        .dist-segment.r0 { background: linear-gradient(135deg, #ef4444, #dc2626); }
         
-        .heatmap-section { margin-bottom: 16px; }
-        .heatmap-label {
-            font-size: 13px;
-            color: var(--text-secondary);
-            margin-bottom: 10px;
-        }
+        .heatmap-section { margin-bottom: 14px; }
         .heatmap-grid {
             display: flex;
             flex-wrap: wrap;
-            gap: 4px;
+            gap: 3px;
+            padding: 8px;
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
         }
         .heatmap-cell {
-            width: 16px;
-            height: 16px;
-            border-radius: 4px;
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
             cursor: pointer;
-            transition: transform 0.15s, box-shadow 0.15s;
+            transition: transform 0.12s ease, filter 0.12s ease;
+            position: relative;
         }
-        .heatmap-cell:hover {
-            transform: scale(1.6);
+        .heatmap-cell:hover,
+        .heatmap-cell.active {
+            transform: scale(1.8);
             z-index: 10;
-            box-shadow: 0 0 8px rgba(255,255,255,0.3);
+            filter: brightness(1.15) drop-shadow(0 0 3px var(--cell-glow));
         }
+        .heatmap-cell::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 3px;
+            opacity: 0;
+            transition: opacity 0.12s ease;
+        }
+        .heatmap-cell:hover::after,
+        .heatmap-cell.active::after {
+            opacity: 1;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.5);
+        }
+        
         .legend {
             display: flex;
             justify-content: center;
-            gap: 14px;
-            margin-top: 14px;
-            font-size: 12px;
-            color: var(--text-secondary);
+            gap: 8px;
+            margin-top: 10px;
+            font-size: 9px;
+            color: var(--text-muted);
             flex-wrap: wrap;
         }
         .legend-item {
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 3px;
         }
         .legend-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 4px;
+            width: 10px;
+            height: 10px;
+            border-radius: 3px;
         }
+        
+        /* Improved Tooltip for Mobile */
         .tooltip {
             position: fixed;
-            background: var(--bg-card);
+            background: var(--bg-card-solid);
             border: 1px solid var(--accent);
-            border-radius: 10px;
-            padding: 12px 16px;
-            font-size: 13px;
+            border-radius: 12px;
+            padding: 10px 12px;
+            font-size: 12px;
             pointer-events: none;
             z-index: 1000;
             display: none;
-            max-width: 220px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.4);
-            backdrop-filter: blur(8px);
+            max-width: 180px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3), 0 0 0 1px var(--border-color);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
         }
         .tooltip-row {
             display: flex;
             justify-content: space-between;
-            gap: 14px;
-            margin-bottom: 6px;
+            gap: 10px;
+            margin-bottom: 3px;
         }
         .tooltip-row:last-child { margin-bottom: 0; }
-        .tooltip-label { color: var(--text-secondary); }
-        .tooltip-value { font-weight: 600; }
+        .tooltip-label { 
+            color: var(--text-muted); 
+            font-size: 10px;
+        }
+        .tooltip-value { 
+            font-weight: 600;
+            font-size: 11px;
+        }
+        .tooltip-tier {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 8px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 4px;
+        }
+        .tooltip-tier.perfect { background: rgba(21, 128, 61, 0.2); color: #15803d; }
+        .tooltip-tier.vhigh { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+        .tooltip-tier.high { background: rgba(134, 239, 172, 0.2); color: #4ade80; }
+        .tooltip-tier.medium { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+        .tooltip-tier.low { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        
+        /* Mobile tooltip overlay for touch */
+        .tooltip-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 999;
+        }
+        .tooltip-overlay.active {
+            display: block;
+        }
+        
         .filter-btns {
             display: flex;
-            gap: 8px;
+            gap: 5px;
             flex-wrap: wrap;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
+            padding: 0 2px;
         }
         .filter-btn {
-            padding: 8px 14px;
+            padding: 5px 9px;
             border: none;
-            border-radius: 18px;
-            font-size: 13px;
+            border-radius: 14px;
+            font-size: 10px;
             cursor: pointer;
             background: var(--bg-card);
-            color: var(--text-primary);
+            color: var(--text-secondary);
             border: 1px solid var(--border-color);
-            transition: all 0.2s;
+            transition: all 0.15s ease;
+            -webkit-tap-highlight-color: transparent;
         }
         .filter-btn.active {
             background: var(--accent);
             color: white;
             border-color: var(--accent);
+            box-shadow: 0 2px 8px var(--glow-color);
         }
-        .filter-btn:hover { opacity: 0.8; }
+        .filter-btn:active {
+            transform: scale(0.95);
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 380px) {
+            body { padding: 10px; }
+            .score-tiers { gap: 4px; }
+            .tier-card { padding: 8px 2px; }
+            .tier-value { font-size: 16px; }
+            .tier-label { font-size: 8px; }
+            .heatmap-cell { width: 12px; height: 12px; }
+            .heatmap-grid { gap: 2px; padding: 6px; }
+            .filter-btn { padding: 4px 7px; font-size: 9px; }
+        }
     </style>
 </head>
 <body>
@@ -227,16 +356,40 @@
         <button class="theme-toggle" onclick="toggleTheme()">🌓 Theme</button>
     </div>
     
+    <div class="section-title">Score Tiers</div>
+    <div class="score-tiers">
+        <div class="tier-card perfect">
+            <div class="tier-value">8</div>
+            <div class="tier-label">Perfect</div>
+            <div class="tier-range">29-30</div>
+        </div>
+        <div class="tier-card vhigh">
+            <div class="tier-value">49</div>
+            <div class="tier-label">V High</div>
+            <div class="tier-range">27-29</div>
+        </div>
+        <div class="tier-card high">
+            <div class="tier-value">122</div>
+            <div class="tier-label">High</div>
+            <div class="tier-range">24-27</div>
+        </div>
+        <div class="tier-card medium">
+            <div class="tier-value">121</div>
+            <div class="tier-label">Medium</div>
+            <div class="tier-range">18-24</div>
+        </div>
+        <div class="tier-card low">
+            <div class="tier-value">114</div>
+            <div class="tier-label">Low</div>
+            <div class="tier-range">0-18</div>
+        </div>
+    </div>
+    
     <div class="section-title">Overview</div>
     <div class="stats-grid">
         <div class="stat-card total">
             <div class="stat-value">361</div>
             <div class="stat-label">Total Apps</div>
-        </div>
-        <div class="stat-card high">
-            <div class="stat-value">147</div>
-            <div class="stat-label">High Scorers</div>
-            <div class="stat-pct">>24 avg (41%)</div>
         </div>
         <div class="stat-card reviewed">
             <div class="stat-value">147</div>
@@ -248,25 +401,30 @@
             <div class="stat-label">Incomplete</div>
             <div class="stat-pct">59%</div>
         </div>
+        <div class="stat-card missing-rev">
+            <div class="stat-value">299</div>
+            <div class="stat-label">Pending Rev</div>
+            <div class="stat-pct">28%</div>
+        </div>
     </div>
     
     <div class="section-title">Reviews Per Application</div>
     <div class="stats-grid four-col">
         <div class="stat-card small r3">
             <div class="stat-value">147</div>
-            <div class="stat-label">3 reviews</div>
+            <div class="stat-label">3 rev</div>
         </div>
         <div class="stat-card small r2">
             <div class="stat-value">133</div>
-            <div class="stat-label">2 reviews</div>
+            <div class="stat-label">2 rev</div>
         </div>
         <div class="stat-card small r1">
             <div class="stat-value">77</div>
-            <div class="stat-label">1 review</div>
+            <div class="stat-label">1 rev</div>
         </div>
         <div class="stat-card small r0">
             <div class="stat-value">4</div>
-            <div class="stat-label">0 reviews</div>
+            <div class="stat-label">0 rev</div>
         </div>
     </div>
     
@@ -285,7 +443,9 @@
         <button class="filter-btn active" data-filter="all">All</button>
         <button class="filter-btn" data-filter="complete">Complete</button>
         <button class="filter-btn" data-filter="incomplete">Incomplete</button>
-        <button class="filter-btn" data-filter="high">High (>24)</button>
+        <button class="filter-btn" data-filter="perfect">Perfect</button>
+        <button class="filter-btn" data-filter="vhigh">V High</button>
+        <button class="filter-btn" data-filter="high">High</button>
     </div>
     
     <div class="heatmap-section">
@@ -342,323 +502,325 @@
 <div class="heatmap-cell" style="background:#ef4444"></div>
 <div class="heatmap-cell" style="background:#ef4444"></div>
 <div class="heatmap-cell" style="background:#ef4444"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#fbbf24"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
-<div class="heatmap-cell" style="background:#22c55e"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#ef4444"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#f59e0b"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#86efac"></div>
+<div class="heatmap-cell" style="background:#22c55e"></div>
+<div class="heatmap-cell" style="background:#22c55e"></div>
+<div class="heatmap-cell" style="background:#22c55e"></div>
+<div class="heatmap-cell" style="background:#22c55e"></div>
+<div class="heatmap-cell" style="background:#22c55e"></div>
+<div class="heatmap-cell" style="background:#22c55e"></div>
+<div class="heatmap-cell" style="background:#22c55e"></div>
+<div class="heatmap-cell" style="background:#22c55e"></div>
+<div class="heatmap-cell" style="background:#22c55e"></div>
+<div class="heatmap-cell" style="background:#22c55e"></div>
+<div class="heatmap-cell" style="background:#22c55e"></div>
+<div class="heatmap-cell" style="background:#22c55e"></div>
+<div class="heatmap-cell" style="background:#22c55e"></div>
+<div class="heatmap-cell" style="background:#22c55e"></div>
+<div class="heatmap-cell" style="background:#22c55e"></div>
+<div class="heatmap-cell" style="background:#22c55e"></div>
+<div class="heatmap-cell" style="background:#22c55e"></div>
+<div class="heatmap-cell" style="background:#22c55e"></div>
+<div class="heatmap-cell" style="background:#22c55e"></div>
+<div class="heatmap-cell" style="background:#22c55e"></div>
+<div class="heatmap-cell" style="background:#22c55e"></div>
+<div class="heatmap-cell" style="background:#22c55e"></div>
+<div class="heatmap-cell" style="background:#22c55e"></div>
+<div class="heatmap-cell" style="background:#22c55e"></div>
+<div class="heatmap-cell" style="background:#22c55e"></div>
+<div class="heatmap-cell" style="background:#22c55e"></div>
+<div class="heatmap-cell" style="background:#22c55e"></div>
+<div class="heatmap-cell" style="background:#22c55e"></div>
+<div class="heatmap-cell" style="background:#22c55e"></div>
+<div class="heatmap-cell" style="background:#22c55e"></div>
+<div class="heatmap-cell" style="background:#22c55e"></div>
+<div class="heatmap-cell" style="background:#22c55e"></div>
+<div class="heatmap-cell" style="background:#22c55e"></div>
+<div class="heatmap-cell" style="background:#22c55e"></div>
+<div class="heatmap-cell" style="background:#22c55e"></div>
+<div class="heatmap-cell" style="background:#22c55e"></div>
+<div class="heatmap-cell" style="background:#22c55e"></div>
+<div class="heatmap-cell" style="background:#22c55e"></div>
+<div class="heatmap-cell" style="background:#22c55e"></div>
+<div class="heatmap-cell" style="background:#22c55e"></div>
+<div class="heatmap-cell" style="background:#22c55e"></div>
+<div class="heatmap-cell" style="background:#15803d"></div>
+<div class="heatmap-cell" style="background:#15803d"></div>
+<div class="heatmap-cell" style="background:#15803d"></div>
+<div class="heatmap-cell" style="background:#15803d"></div>
+<div class="heatmap-cell" style="background:#15803d"></div>
+<div class="heatmap-cell" style="background:#15803d"></div>
+<div class="heatmap-cell" style="background:#15803d"></div>
+<div class="heatmap-cell" style="background:#15803d"></div>
         </div>
     </div>
     
     <div class="legend">
-        <div class="legend-item"><span class="legend-dot" style="background:#6b7280"></span> No reviews</div>
-        <div class="legend-item"><span class="legend-dot" style="background:#ef4444"></span> Low (<12)</div>
-        <div class="legend-item"><span class="legend-dot" style="background:#fbbf24"></span> Medium</div>
-        <div class="legend-item"><span class="legend-dot" style="background:#22c55e"></span> High (>24)</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#6b7280"></span> None</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#ef4444"></span> Low ≤18</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#f59e0b"></span> Med ≤24</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#86efac"></span> High >24</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#22c55e"></span> V High >27</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#15803d"></span> Perfect >29</div>
     </div>
     
     <div class="tooltip" id="tooltip"></div>
@@ -668,23 +830,63 @@
         const tooltip = document.getElementById('tooltip');
         const cells = document.querySelectorAll('.heatmap-cell');
         
-        // Smart tooltip positioning
+        function getTier(mean) {
+            if (mean <= 0) return { name: 'none', label: 'No Reviews' };
+            if (mean > 29) return { name: 'perfect', label: 'Perfect' };
+            if (mean > 27) return { name: 'vhigh', label: 'V High' };
+            if (mean > 24) return { name: 'high', label: 'High' };
+            if (mean > 18) return { name: 'medium', label: 'Medium' };
+            return { name: 'low', label: 'Low' };
+        }
+        
+        // Smart tooltip positioning with touch support
+        let activeCell = null;
+        
+        function showTooltip(cell, idx, e) {
+            const app = apps[idx];
+            const tier = getTier(app.mean);
+            tooltip.innerHTML = `
+                <div class="tooltip-row"><span class="tooltip-label">ID:</span><span class="tooltip-value">${app.id}</span></div>
+                <div class="tooltip-row"><span class="tooltip-label">Reviews:</span><span class="tooltip-value">${app.num_reviews}</span></div>
+                <div class="tooltip-row"><span class="tooltip-label">Scores:</span><span class="tooltip-value">${app.display_scores.join(', ')}</span></div>
+                <div class="tooltip-row"><span class="tooltip-label">Mean:</span><span class="tooltip-value">${app.mean > 0 ? app.mean.toFixed(1) : 'na'}</span></div>
+                <div class="tooltip-tier ${tier.name}">${tier.label}</div>
+            `;
+            tooltip.style.display = 'block';
+            positionTooltip(e);
+            
+            if (activeCell) activeCell.classList.remove('active');
+            cell.classList.add('active');
+            activeCell = cell;
+        }
+        
+        function hideTooltip() {
+            tooltip.style.display = 'none';
+            if (activeCell) {
+                activeCell.classList.remove('active');
+                activeCell = null;
+            }
+        }
+        
         cells.forEach((cell, idx) => {
-            cell.addEventListener('mouseenter', (e) => {
-                const app = apps[idx];
-                tooltip.innerHTML = `
-                    <div class="tooltip-row"><span class="tooltip-label">ID:</span><span class="tooltip-value">${app.id}</span></div>
-                    <div class="tooltip-row"><span class="tooltip-label">Reviews:</span><span class="tooltip-value">${app.num_reviews}</span></div>
-                    <div class="tooltip-row"><span class="tooltip-label">Scores:</span><span class="tooltip-value">${app.display_scores.join(', ')}</span></div>
-                    <div class="tooltip-row"><span class="tooltip-label">Mean:</span><span class="tooltip-value">${app.mean > 0 ? app.mean.toFixed(1) : 'na'}</span></div>
-                `;
-                tooltip.style.display = 'block';
-                positionTooltip(e);
-            });
+            // Mouse events
+            cell.addEventListener('mouseenter', (e) => showTooltip(cell, idx, e));
             cell.addEventListener('mousemove', positionTooltip);
-            cell.addEventListener('mouseleave', () => {
-                tooltip.style.display = 'none';
+            cell.addEventListener('mouseleave', hideTooltip);
+            
+            // Touch events for mobile
+            cell.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                showTooltip(cell, idx, { clientX: touch.clientX, clientY: touch.clientY });
             });
+        });
+        
+        // Hide tooltip on touch outside
+        document.addEventListener('touchstart', (e) => {
+            if (!e.target.classList.contains('heatmap-cell')) {
+                hideTooltip();
+            }
         });
         
         function positionTooltip(e) {
@@ -704,6 +906,10 @@
             if (e.clientY > vh / 2) {
                 y = e.clientY - th - 12;
             }
+            
+            // Keep within bounds
+            x = Math.max(8, Math.min(x, vw - tw - 8));
+            y = Math.max(8, Math.min(y, vh - th - 8));
             
             tooltip.style.left = x + 'px';
             tooltip.style.top = y + 'px';
@@ -725,7 +931,9 @@
                 switch(filter) {
                     case 'complete': show = !app.has_zero; break;
                     case 'incomplete': show = app.has_zero; break;
-                    case 'high': show = app.mean >= 24; break;
+                    case 'perfect': show = app.mean > 29; break;
+                    case 'vhigh': show = app.mean > 27; break;
+                    case 'high': show = app.mean > 24; break;
                 }
                 cell.style.display = show ? 'block' : 'none';
             });
