@@ -1,0 +1,1812 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview Cutoff Analysis</title>
+    <style>
+        :root {
+            --bg-primary: #0f0f1a;
+            --bg-secondary: #1a1a2e;
+            --bg-card: rgba(30, 30, 50, 0.8);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0c0;
+            --accent-primary: #6366f1;
+            --accent-secondary: #8b5cf6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --border: rgba(255, 255, 255, 0.1);
+            --glow: 0 0 20px rgba(99, 102, 241, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .gradient-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(ellipse at 20% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 50%), radial-gradient(ellipse at 80% 80%, rgba(139, 92, 246, 0.1) 0%, transparent 50%), linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff 0%, #a0a0c0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .card {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--glow);
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-title::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: linear-gradient(180deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 2px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+        }
+
+        .stat-card.success .stat-value {
+            background: linear-gradient(135deg, var(--success), #34d399);
+            -webkit-background-clip: text;
+        }
+
+        .stat-card.warning .stat-value {
+            background: linear-gradient(135deg, var(--warning), #fbbf24);
+            -webkit-background-clip: text;
+        }
+
+        .stat-card.danger .stat-value {
+            background: linear-gradient(135deg, var(--danger), #f87171);
+            -webkit-background-clip: text;
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .three-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 1200px) {
+
+            .two-column,
+            .three-column {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .cutoff-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        @media (max-width: 1000px) {
+            .cutoff-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .cutoff-value {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .cutoff-slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            appearance: none;
+            cursor: pointer;
+        }
+
+        .cutoff-slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            cursor: grab;
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.5);
+        }
+
+        .preset-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .preset-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .preset-btn:hover,
+        .preset-btn.active {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+        }
+
+        .selection-info {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 12px;
+        }
+
+        .selection-info.warning {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        .selection-count {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--success);
+        }
+
+        .selection-info.warning .selection-count {
+            color: var(--warning);
+        }
+
+        .histogram-container {
+            height: 180px;
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+            padding: 1rem 0;
+        }
+
+        .histogram-bar {
+            flex: 1;
+            background: linear-gradient(180deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 4px 4px 0 0;
+            min-width: 12px;
+            position: relative;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .histogram-bar:hover {
+            filter: brightness(1.2);
+        }
+
+        .histogram-bar.below-cutoff {
+            background: linear-gradient(180deg, rgba(100, 100, 130, 0.6), rgba(80, 80, 110, 0.6));
+        }
+
+        .histogram-bar .count {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .histogram-bar:hover .count {
+            opacity: 1;
+        }
+
+        .histogram-labels {
+            display: flex;
+            justify-content: space-between;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            padding-top: 0.5rem;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            max-height: 350px;
+            overflow-y: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 0.6rem 0.8rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            cursor: pointer;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        th:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .score-badge {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .score-high {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+
+        .score-medium {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+        }
+
+        .score-low {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            margin-left: 0.2rem;
+        }
+
+        .tag-missing {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+
+        .tag-high-single {
+            background: rgba(139, 92, 246, 0.2);
+            color: var(--accent-secondary);
+        }
+
+        .tag-borderline {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+        }
+
+        .tag-boosted {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+
+        .filters {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+
+        .filter-btn:hover,
+        .filter-btn.active {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+            color: var(--text-primary);
+        }
+
+        .filter-btn .count {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 0.1rem 0.3rem;
+            border-radius: 4px;
+            margin-left: 0.4rem;
+            font-size: 0.75rem;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.6rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+
+        .search-input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .page-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 0.4rem 0.6rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .page-btn:hover,
+        .page-btn.active {
+            background: var(--accent-primary);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .variance-bar {
+            width: 100%;
+            height: 5px;
+            background: var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 0.2rem;
+        }
+
+        .variance-fill {
+            height: 100%;
+            border-radius: 3px;
+        }
+
+        .variance-low {
+            background: var(--success);
+        }
+
+        .variance-medium {
+            background: var(--warning);
+        }
+
+        .variance-high {
+            background: var(--danger);
+        }
+
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+        }
+
+        .toggle-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .toggle {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .toggle.active {
+            background: var(--accent-primary);
+        }
+
+        .toggle::after {
+            content: '';
+            position: absolute;
+            left: 2px;
+            top: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+
+        .toggle.active::after {
+            transform: translateX(20px);
+        }
+
+        .inclusivity-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+
+        .inclusivity-label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .inclusivity-value {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .expandable-content {
+            display: none;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .expandable-content.show {
+            display: table-row;
+        }
+
+        .review-detail {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 0.5rem;
+            padding: 0.75rem;
+        }
+
+        .review-item {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 0.5rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+
+        .reviewer-id {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        /* New visualization styles */
+        .radar-container {
+            width: 100%;
+            height: 280px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .radar-svg {
+            width: 260px;
+            height: 260px;
+        }
+
+        .radar-label {
+            font-size: 0.7rem;
+            fill: var(--text-secondary);
+        }
+
+        .radar-axis {
+            stroke: var(--border);
+            stroke-width: 1;
+        }
+
+        .radar-shape {
+            fill: rgba(99, 102, 241, 0.3);
+            stroke: var(--accent-primary);
+            stroke-width: 2;
+        }
+
+        .box-plot-container {
+            height: 120px;
+            padding: 1rem;
+        }
+
+        .box-plot {
+            height: 30px;
+            position: relative;
+            margin: 0.5rem 0;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 4px;
+        }
+
+        .box-whisker {
+            position: absolute;
+            height: 100%;
+            background: linear-gradient(90deg, var(--border), var(--accent-primary), var(--border));
+            border-radius: 4px;
+        }
+
+        .box-median {
+            position: absolute;
+            width: 3px;
+            height: 100%;
+            background: var(--text-primary);
+            border-radius: 2px;
+        }
+
+        .box-label {
+            position: absolute;
+            top: -18px;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        .scatter-container {
+            height: 250px;
+            position: relative;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .scatter-point {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .scatter-point:hover {
+            transform: translate(-50%, -50%) scale(1.5);
+            z-index: 10;
+        }
+
+        .scatter-point.selected {
+            background: var(--success) !important;
+        }
+
+        .scatter-point.below {
+            background: rgba(100, 100, 150, 0.6);
+        }
+
+        .scatter-axis {
+            position: absolute;
+            color: var(--text-secondary);
+            font-size: 0.7rem;
+        }
+
+        .category-bars {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 0.5rem;
+            height: 150px;
+            align-items: flex-end;
+        }
+
+        .category-bar {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100%;
+        }
+
+        .category-bar-fill {
+            width: 100%;
+            border-radius: 4px 4px 0 0;
+            transition: height 0.3s;
+        }
+
+        .category-bar-label {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-top: 0.3rem;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            max-height: 60px;
+            overflow: hidden;
+        }
+
+        .category-bar-value {
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 0.2rem;
+        }
+
+        .legend {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        /* Cumulative Distribution Chart */
+        .cumulative-container {
+            height: 200px;
+            position: relative;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .cumulative-canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .cumulative-cutoff-line {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--warning);
+            cursor: ew-resize;
+            z-index: 5;
+            transition: left 0.1s;
+        }
+
+        .cumulative-cutoff-line::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: -6px;
+            width: 14px;
+            height: 14px;
+            background: var(--warning);
+            border-radius: 50%;
+            transform: translateY(-50%);
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+        }
+
+        /* Radar Chart */
+        .radar-svg {
+            width: 100%;
+            height: 260px;
+        }
+
+        .radar-polygon {
+            transition: d 0.3s ease-out;
+        }
+
+        .radar-point {
+            transition: cx 0.3s, cy 0.3s;
+        }
+
+        /* Interactive Histogram */
+        .histogram-bar.clickable {
+            cursor: pointer;
+        }
+
+        .histogram-bar.active {
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.8);
+        }
+
+        .histogram-bar .bar-apps {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-secondary);
+            border: 1px solid var(--accent-primary);
+            border-radius: 6px;
+            padding: 0.5rem;
+            font-size: 0.7rem;
+            max-height: 120px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+            min-width: 100px;
+        }
+
+        .histogram-bar:hover .bar-apps {
+            display: block;
+        }
+
+        /* Comparison Panel */
+        .comparison-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .comparison-section {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .comparison-section h4 {
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .comparison-section.selected h4 {
+            color: var(--success);
+        }
+
+        .comparison-section.rejected h4 {
+            color: var(--danger);
+        }
+
+        .comparison-stat {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.3rem 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.85rem;
+        }
+
+        .comparison-stat:last-child {
+            border-bottom: none;
+        }
+
+        /* Score trend mini-chart */
+        .trend-sparkline {
+            height: 30px;
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+            margin-top: 0.5rem;
+        }
+
+        .trend-bar {
+            flex: 1;
+            border-radius: 2px 2px 0 0;
+            transition: height 0.3s;
+            min-width: 8px;
+        }
+
+        /* Animation classes */
+        .animate-pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.6;
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Interactive inclusivity items */
+        .inclusivity-item {
+            cursor: pointer;
+            transition: background 0.2s, transform 0.2s;
+        }
+
+        .inclusivity-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateX(5px);
+        }
+
+        .inclusivity-item.active {
+            background: rgba(99, 102, 241, 0.2);
+            border-left: 3px solid var(--accent-primary);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="gradient-bg"></div>
+    <div class="container">
+        <header>
+            <h1>Interview Cutoff Analysis</h1>
+            <p class="subtitle">Interactive dashboard with visualizations • IDs obfuscated for privacy</p>
+        </header>
+
+        <!-- Summary Statistics -->
+        <div class="card">
+            <div class="card-title">Summary Statistics</div>
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalApps">0</div>
+                    <div class="stat-label">Applications</div>
+                </div>
+                <div class="stat-card success">
+                    <div class="stat-value" id="fullyReviewed">0</div>
+                    <div class="stat-label">Fully Reviewed</div>
+                </div>
+                <div class="stat-card warning">
+                    <div class="stat-value" id="partiallyReviewed">0</div>
+                    <div class="stat-label">Partial</div>
+                </div>
+                <div class="stat-card danger">
+                    <div class="stat-value" id="missingReviews">0</div>
+                    <div class="stat-label">Missing</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="avgScore">0</div>
+                    <div class="stat-label">Avg Score</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stdDev">0</div>
+                    <div class="stat-label">Std Dev</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="medianScore">0</div>
+                    <div class="stat-label">Median</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="reviewerCount">0</div>
+                    <div class="stat-label">Reviewers</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cutoff and Histogram -->
+        <div class="card">
+            <div class="card-title">Interview Cutoff Selection</div>
+            <div class="toggle-container">
+                <span class="toggle-label">Bias Adjustment</span>
+                <div class="toggle" id="biasToggle" onclick="toggleBiasAdjustment()"></div>
+                <span id="biasStatus" style="color: var(--text-secondary); font-size: 0.8rem;">OFF</span>
+            </div>
+            <div class="cutoff-section">
+                <div>
+                    <div class="slider-header">
+                        <span>Score Cutoff</span>
+                        <span class="cutoff-value" id="cutoffDisplay">27</span>
+                    </div>
+                    <input type="range" min="15" max="30" value="27" step="0.5" class="cutoff-slider" id="cutoffSlider">
+                    <div class="preset-buttons">
+                        <button class="preset-btn" data-value="24">24</button>
+                        <button class="preset-btn" data-value="25">25</button>
+                        <button class="preset-btn" data-value="26">26</button>
+                        <button class="preset-btn active" data-value="27">27</button>
+                        <button class="preset-btn" data-value="28">28</button>
+                        <button class="preset-btn" data-value="29">29</button>
+                    </div>
+                    <div class="selection-info" id="selectionInfo">
+                        <div>Selected for interview:</div>
+                        <div class="selection-count" id="selectedCount">0</div>
+                        <div style="margin-top: 0.3rem; color: var(--text-secondary); font-size: 0.85rem;"
+                            id="targetMessage"></div>
+                    </div>
+                </div>
+                <div>
+                    <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.3rem;">Score
+                        Distribution <span id="histogramLabel"></span></div>
+                    <div class="histogram-container" id="histogram"></div>
+                    <div class="histogram-labels"><span>15</span><span>20</span><span>25</span><span>30</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cumulative Distribution -->
+        <div class="card">
+            <div class="card-title">Cumulative Score Distribution</div>
+            <div class="cumulative-container" id="cumulativeChart">
+                <canvas class="cumulative-canvas" id="cumulativeCanvas"></canvas>
+                <div class="cumulative-cutoff-line" id="cumulativeCutoffLine"></div>
+            </div>
+            <div
+                style="display: flex; justify-content: space-between; margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-secondary);">
+                <span>Score 15</span>
+                <span>Drag line to adjust cutoff</span>
+                <span>Score 30</span>
+            </div>
+        </div>
+
+        <!-- Visualizations Row -->
+        <div class="three-column">
+            <div class="card">
+                <div class="card-title">Score Categories (Avg)</div>
+                <div class="category-bars" id="categoryBars"></div>
+                <div style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.5rem; text-align: center;">
+                    Academic • Integrity • Resilience • Social • Curiosity • Values</div>
+            </div>
+            <div class="card">
+                <div class="card-title">Raw vs Adjusted Scores</div>
+                <div class="scatter-container" id="scatterPlot">
+                    <div class="scatter-axis" style="bottom: 5px; left: 50%;">Raw Score →</div>
+                    <div class="scatter-axis" style="left: 5px; top: 50%; transform: rotate(-90deg) translateX(-50%);">
+                        Adjusted ↑</div>
+                </div>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background: var(--success);"></div> Above cutoff
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background: rgba(100,100,150,0.6);"></div> Below cutoff
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">Score Range by Reviewer</div>
+                <div class="box-plot-container" id="boxPlots"></div>
+                <div style="font-size: 0.7rem; color: var(--text-secondary); text-align: center;">Min ← Range → Max (top
+                    6 reviewers by volume)</div>
+            </div>
+        </div>
+
+        <!-- Comparison Analysis -->
+        <div class="two-column">
+            <div class="card">
+                <div class="card-title">Selected vs Rejected Comparison</div>
+                <div class="comparison-panel" id="comparisonPanel">
+                    <div class="comparison-section selected">
+                        <h4>✓ Above Cutoff (<span id="compSelectedCount">0</span>)</h4>
+                        <div id="compSelectedStats"></div>
+                    </div>
+                    <div class="comparison-section rejected">
+                        <h4>✗ Below Cutoff (<span id="compRejectedCount">0</span>)</h4>
+                        <div id="compRejectedStats"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">Category Radar (Selected Applicants)</div>
+                <svg class="radar-svg" id="radarChart" viewBox="0 0 260 260">
+                    <g id="radarGrid"></g>
+                    <g id="radarAxes"></g>
+                    <polygon id="radarPolygon" class="radar-polygon" fill="rgba(99, 102, 241, 0.3)"
+                        stroke="var(--accent-primary)" stroke-width="2"></polygon>
+                    <polygon id="radarPolygonRejected" class="radar-polygon" fill="rgba(239, 68, 68, 0.15)"
+                        stroke="var(--danger)" stroke-width="1.5" stroke-dasharray="4,2"></polygon>
+                    <g id="radarPoints"></g>
+                    <g id="radarLabels"></g>
+                </svg>
+                <div class="legend" style="justify-content: center;">
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background: var(--accent-primary);"></div> Selected
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background: var(--danger); opacity: 0.5;"></div> Rejected
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inclusivity and Reviewer Analysis -->
+        <div class="two-column">
+            <div class="card">
+                <div class="card-title">Inclusivity Analysis <span
+                        style="font-size:0.7rem;color:var(--text-secondary);font-weight:normal;">(click to
+                        filter)</span></div>
+                <div class="inclusivity-item" data-filter="highSingle" onclick="setFilterFromInclusivity('highSingle')">
+                    <span class="inclusivity-label">High single review (≥27) below cutoff</span>
+                    <span class="inclusivity-value" id="highSingleCount">0</span>
+                </div>
+                <div class="inclusivity-item" data-filter="borderline" onclick="setFilterFromInclusivity('borderline')">
+                    <span class="inclusivity-label">Borderline (within 1.5 of cutoff)</span>
+                    <span class="inclusivity-value" id="borderlineCount">0</span>
+                </div>
+                <div class="inclusivity-item" data-filter="highVariance"
+                    onclick="setFilterFromInclusivity('highVariance')">
+                    <span class="inclusivity-label">High variance (std > 3)</span>
+                    <span class="inclusivity-value" id="highVarianceCount">0</span>
+                </div>
+                <div class="inclusivity-item" data-filter="boosted" onclick="setFilterFromInclusivity('boosted')">
+                    <span class="inclusivity-label">Boosted by bias adjustment</span>
+                    <span class="inclusivity-value" style="color: var(--success);" id="boostedCount">0</span>
+                </div>
+                <div class="inclusivity-item" data-filter="additional" onclick="setFilterFromInclusivity('additional')">
+                    <span class="inclusivity-label">Recommended additional</span>
+                    <span class="inclusivity-value" style="color: var(--accent-secondary);"
+                        id="additionalInterviews">0</span>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">Reviewer Pivot Analysis</div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Reviewer</th>
+                                <th>Reviews</th>
+                                <th>Avg</th>
+                                <th>Bias</th>
+                                <th>Tendency</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reviewerTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Applications Table -->
+        <div class="card">
+            <div class="card-title">Applications Detail</div>
+            <input type="text" class="search-input" id="searchInput" placeholder="Search by Application ID...">
+            <div class="filters">
+                <button class="filter-btn active" data-filter="all">All <span class="count"
+                        id="filterAll">0</span></button>
+                <button class="filter-btn" data-filter="selected">Above Cutoff <span class="count"
+                        id="filterSelected">0</span></button>
+                <button class="filter-btn" data-filter="highSingle">High Single <span class="count"
+                        id="filterHighSingle">0</span></button>
+                <button class="filter-btn" data-filter="borderline">Borderline <span class="count"
+                        id="filterBorderline">0</span></button>
+                <button class="filter-btn" data-filter="boosted">Boosted <span class="count"
+                        id="filterBoosted">0</span></button>
+                <button class="filter-btn" data-filter="missing">Missing <span class="count"
+                        id="filterMissing">0</span></button>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th data-sort="id">App ID ↕</th>
+                            <th data-sort="avg">Raw ↕</th>
+                            <th data-sort="adjusted">Adj ↕</th>
+                            <th data-sort="max">Max ↕</th>
+                            <th data-sort="min">Min ↕</th>
+                            <th data-sort="variance">Var ↕</th>
+                            <th data-sort="reviews">#Rev ↕</th>
+                            <th>Tags</th>
+                        </tr>
+                    </thead>
+                    <tbody id="applicationsTableBody"></tbody>
+                </table>
+            </div>
+            <div class="pagination" id="pagination"></div>
+        </div>
+    </div>
+
+    <script>
+        const rawReviewData = [{ "appId": "31d799ea", "reviewerId": "aa7e75e4", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "31d799ea", "reviewerId": "82694715", "scores": [5, 4, 4, 4, 5, 5], "total": 27, "isMissing": false }, { "appId": "31d799ea", "reviewerId": "c5ab77ac", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "a2513f8b", "reviewerId": "aa7e75e4", "scores": [4, 4, 5, 3, 4, 4], "total": 24, "isMissing": false }, { "appId": "a2513f8b", "reviewerId": "c5ab77ac", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "a2513f8b", "reviewerId": "f8fae246", "scores": [5, 4, 3, 3, 4, 3], "total": 22, "isMissing": false }, { "appId": "795cf0b0", "reviewerId": "b6f35ccf", "scores": [4, 4, 5, 4, 4, 5], "total": 26, "isMissing": false }, { "appId": "795cf0b0", "reviewerId": "c5ab77ac", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "795cf0b0", "reviewerId": "f8fae246", "scores": [5, 5, 5, 4, 5, 5], "total": 29, "isMissing": false }, { "appId": "ff428fa5", "reviewerId": "aa7e75e4", "scores": [4, 4, 5, 4, 4, 3], "total": 24, "isMissing": false }, { "appId": "ff428fa5", "reviewerId": "c5ab77ac", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "ff428fa5", "reviewerId": "f8fae246", "scores": [5, 4, 5, 4, 5, 5], "total": 28, "isMissing": false }, { "appId": "25fd090d", "reviewerId": "aa7e75e4", "scores": [3, 4, 4, 4, 4, 3], "total": 22, "isMissing": false }, { "appId": "25fd090d", "reviewerId": "c5ab77ac", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "25fd090d", "reviewerId": "f8fae246", "scores": [5, 4, 5, 3, 3, 2], "total": 22, "isMissing": false }, { "appId": "13f10cc1", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 5, 4, 5], "total": 28, "isMissing": false }, { "appId": "13f10cc1", "reviewerId": "c5ab77ac", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "13f10cc1", "reviewerId": "f8fae246", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "56217f25", "reviewerId": "aa7e75e4", "scores": [5, 5, 5, 4, 5, 5], "total": 29, "isMissing": false }, { "appId": "56217f25", "reviewerId": "c5ab77ac", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "56217f25", "reviewerId": "f8fae246", "scores": [5, 4, 4, 5, 5, 4], "total": 27, "isMissing": false }, { "appId": "d4c1a94c", "reviewerId": "aa7e75e4", "scores": [4, 4, 5, 3, 3, 3], "total": 22, "isMissing": false }, { "appId": "d4c1a94c", "reviewerId": "2dcc8dce", "scores": [4, 4, 5, 4, 5, 4], "total": 26, "isMissing": false }, { "appId": "d4c1a94c", "reviewerId": "97760f4d", "scores": [4, 3, 3, 2, 2, 3], "total": 17, "isMissing": false }, { "appId": "670d2ea7", "reviewerId": "aa7e75e4", "scores": [3, 4, 5, 5, 4, 5], "total": 26, "isMissing": false }, { "appId": "670d2ea7", "reviewerId": "51df1f35", "scores": [3, 2, 3, 3, 3, 3], "total": 17, "isMissing": false }, { "appId": "670d2ea7", "reviewerId": "c5ab77ac", "scores": [3, 5, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "8fcbd612", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 5, 5, 3], "total": 27, "isMissing": false }, { "appId": "8fcbd612", "reviewerId": "b6f35ccf", "scores": [4, 4, 4, 5, 5, 4], "total": 26, "isMissing": false }, { "appId": "8fcbd612", "reviewerId": "c5ab77ac", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "cbd9b3cf", "reviewerId": "aa7e75e4", "scores": [5, 5, 5, 4, 5, 5], "total": 29, "isMissing": false }, { "appId": "cbd9b3cf", "reviewerId": "c5ab77ac", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "cbd9b3cf", "reviewerId": "f8fae246", "scores": [5, 5, 4, 5, 5, 4], "total": 28, "isMissing": false }, { "appId": "fc050479", "reviewerId": "aa7e75e4", "scores": [2, 4, 5, 4, 4, 5], "total": 24, "isMissing": false }, { "appId": "fc050479", "reviewerId": "2dcc8dce", "scores": null, "total": null, "isMissing": true }, { "appId": "fc050479", "reviewerId": "c5ab77ac", "scores": [3, 5, 5, 5, 5, 5], "total": 28, "isMissing": false }, { "appId": "ea371552", "reviewerId": "aa7e75e4", "scores": [5, 5, 5, 5, 4, 5], "total": 29, "isMissing": false }, { "appId": "ea371552", "reviewerId": "b6f35ccf", "scores": [4, 3, 4, 4, 3, 4], "total": 22, "isMissing": false }, { "appId": "ea371552", "reviewerId": "97760f4d", "scores": null, "total": null, "isMissing": true }, { "appId": "e5953c6e", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "e5953c6e", "reviewerId": "82694715", "scores": [3, 3, 3, 2, 4, 4], "total": 19, "isMissing": false }, { "appId": "e5953c6e", "reviewerId": "f8fae246", "scores": [4, 1, 1, 1, 1, 2], "total": 10, "isMissing": false }, { "appId": "cc0c0e3c", "reviewerId": "aa7e75e4", "scores": [5, 5, 5, 5, 4, 5], "total": 29, "isMissing": false }, { "appId": "cc0c0e3c", "reviewerId": "0bf3b110", "scores": [5, 4, 4, 5, 5, 5], "total": 28, "isMissing": false }, { "appId": "cc0c0e3c", "reviewerId": "c5ab77ac", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "d748c9de", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 5, 4, 4], "total": 27, "isMissing": false }, { "appId": "d748c9de", "reviewerId": "0bf3b110", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "d748c9de", "reviewerId": "c5ab77ac", "scores": [4, 5, 5, 4, 4, 4], "total": 26, "isMissing": false }, { "appId": "615dcfa8", "reviewerId": "aa7e75e4", "scores": [2, 2, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "615dcfa8", "reviewerId": "c5ab77ac", "scores": [5, 4, 4, 4, 4, 4], "total": 25, "isMissing": false }, { "appId": "615dcfa8", "reviewerId": "f8fae246", "scores": [5, 4, 4, 4, 3, 3], "total": 23, "isMissing": false }, { "appId": "434fcd99", "reviewerId": "aa7e75e4", "scores": [5, 5, 4, 5, 5, 5], "total": 29, "isMissing": false }, { "appId": "434fcd99", "reviewerId": "e5541a84", "scores": [4, 4, 3, 2, 4, 4], "total": 21, "isMissing": false }, { "appId": "434fcd99", "reviewerId": "c5ab77ac", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "b37303df", "reviewerId": "aa7e75e4", "scores": [4, 4, 5, 5, 4, 5], "total": 27, "isMissing": false }, { "appId": "b37303df", "reviewerId": "2dcc8dce", "scores": null, "total": null, "isMissing": true }, { "appId": "b37303df", "reviewerId": "0bf3b110", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "39247d21", "reviewerId": "aa7e75e4", "scores": [4, 5, 4, 4, 4, 5], "total": 26, "isMissing": false }, { "appId": "39247d21", "reviewerId": "b13ae3fa", "scores": [4, 4, 3, 4, 5, 4], "total": 24, "isMissing": false }, { "appId": "39247d21", "reviewerId": "f8fae246", "scores": [5, 5, 4, 4, 4, 5], "total": 27, "isMissing": false }, { "appId": "8d78fca3", "reviewerId": "aa7e75e4", "scores": [4, 4, 5, 4, 5, 5], "total": 27, "isMissing": false }, { "appId": "8d78fca3", "reviewerId": "0bf3b110", "scores": [3, 3, 3, 3, 2, 3], "total": 17, "isMissing": false }, { "appId": "8d78fca3", "reviewerId": "c5ab77ac", "scores": [4, 5, 5, 5, 5, 4], "total": 28, "isMissing": false }, { "appId": "4b9db742", "reviewerId": "aa7e75e4", "scores": [5, 5, 5, 4, 5, 3], "total": 27, "isMissing": false }, { "appId": "4b9db742", "reviewerId": "8bc11b1a", "scores": [5, 5, 4, 5, 5, 4], "total": 28, "isMissing": false }, { "appId": "4b9db742", "reviewerId": "c5ab77ac", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "725e6d51", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 5, 4, 4], "total": 27, "isMissing": false }, { "appId": "725e6d51", "reviewerId": "03eb26c0", "scores": [5, 4, 5, 5, 5, 5], "total": 29, "isMissing": false }, { "appId": "725e6d51", "reviewerId": "82694715", "scores": [5, 5, 5, 5, 4, 5], "total": 29, "isMissing": false }, { "appId": "0e4573ef", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "0e4573ef", "reviewerId": "03eb26c0", "scores": [4, 3, 5, 4, 3, 3], "total": 22, "isMissing": false }, { "appId": "0e4573ef", "reviewerId": "82694715", "scores": [3, 2, 1, 1, 1, 2], "total": 10, "isMissing": false }, { "appId": "3689fa25", "reviewerId": "aa7e75e4", "scores": [5, 5, 5, 4, 5, 5], "total": 29, "isMissing": false }, { "appId": "3689fa25", "reviewerId": "2dcc8dce", "scores": null, "total": null, "isMissing": true }, { "appId": "3689fa25", "reviewerId": "51df1f35", "scores": [2, 3, 3, 3, 3, 3], "total": 17, "isMissing": false }, { "appId": "e14bca39", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "e14bca39", "reviewerId": "97760f4d", "scores": [3, 1, 1, 1, 1, 2], "total": 9, "isMissing": false }, { "appId": "e14bca39", "reviewerId": "b13ae3fa", "scores": [2, 1, 1, 3, 2, 2], "total": 11, "isMissing": false }, { "appId": "a43ccce3", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "a43ccce3", "reviewerId": "82694715", "scores": [2, 1, 1, 1, 1, 1], "total": 7, "isMissing": false }, { "appId": "a43ccce3", "reviewerId": "e5541a84", "scores": [2, 1, 2, 2, 2, 1], "total": 10, "isMissing": false }, { "appId": "8287c42e", "reviewerId": "aa7e75e4", "scores": [5, 5, 5, 5, 4, 5], "total": 29, "isMissing": false }, { "appId": "8287c42e", "reviewerId": "b6f35ccf", "scores": [4, 5, 5, 5, 4, 5], "total": 28, "isMissing": false }, { "appId": "8287c42e", "reviewerId": "03eb26c0", "scores": [5, 5, 5, 5, 4, 5], "total": 29, "isMissing": false }, { "appId": "e091d08d", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "e091d08d", "reviewerId": "b6f35ccf", "scores": [2, 1, 1, 2, 1, 1], "total": 8, "isMissing": false }, { "appId": "e091d08d", "reviewerId": "e5541a84", "scores": [2, 2, 2, 1, 1, 1], "total": 9, "isMissing": false }, { "appId": "cef24e81", "reviewerId": "aa7e75e4", "scores": [5, 5, 5, 4, 5, 4], "total": 28, "isMissing": false }, { "appId": "cef24e81", "reviewerId": "82694715", "scores": [3, 3, 2, 4, 4, 3], "total": 19, "isMissing": false }, { "appId": "cef24e81", "reviewerId": "f8fae246", "scores": [5, 4, 4, 3, 4, 4], "total": 24, "isMissing": false }, { "appId": "f7244610", "reviewerId": "aa7e75e4", "scores": [3, 5, 5, 5, 5, 4], "total": 27, "isMissing": false }, { "appId": "f7244610", "reviewerId": "2dcc8dce", "scores": null, "total": null, "isMissing": true }, { "appId": "f7244610", "reviewerId": "97760f4d", "scores": [3, 3, 3, 4, 4, 4], "total": 21, "isMissing": false }, { "appId": "d31956a2", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "d31956a2", "reviewerId": "82694715", "scores": [2, 4, 3, 4, 3, 4], "total": 20, "isMissing": false }, { "appId": "d31956a2", "reviewerId": "f8fae246", "scores": [5, 4, 4, 4, 4, 5], "total": 26, "isMissing": false }, { "appId": "4cabbd52", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "4cabbd52", "reviewerId": "97760f4d", "scores": [4, 3, 3, 3, 2, 4], "total": 19, "isMissing": false }, { "appId": "4cabbd52", "reviewerId": "f8fae246", "scores": [4, 3, 2, 3, 2, 3], "total": 17, "isMissing": false }, { "appId": "0db2b07b", "reviewerId": "aa7e75e4", "scores": [5, 5, 5, 4, 4, 5], "total": 28, "isMissing": false }, { "appId": "0db2b07b", "reviewerId": "8bc11b1a", "scores": [5, 5, 5, 5, 4, 5], "total": 29, "isMissing": false }, { "appId": "0db2b07b", "reviewerId": "f8fae246", "scores": [5, 4, 4, 3, 4, 4], "total": 24, "isMissing": false }, { "appId": "bb339889", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 5, 5, 5], "total": 29, "isMissing": false }, { "appId": "bb339889", "reviewerId": "97760f4d", "scores": null, "total": null, "isMissing": true }, { "appId": "bb339889", "reviewerId": "f8fae246", "scores": [5, 4, 5, 4, 3, 4], "total": 25, "isMissing": false }, { "appId": "6b836d78", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "6b836d78", "reviewerId": "2dcc8dce", "scores": null, "total": null, "isMissing": true }, { "appId": "6b836d78", "reviewerId": "82694715", "scores": [3, 3, 3, 3, 4, 3], "total": 19, "isMissing": false }, { "appId": "d7e3c6d5", "reviewerId": "aa7e75e4", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "d7e3c6d5", "reviewerId": "2dcc8dce", "scores": [4, 4, 5, 5, 5, 4], "total": 27, "isMissing": false }, { "appId": "d7e3c6d5", "reviewerId": "82694715", "scores": [5, 3, 4, 3, 4, 3], "total": 22, "isMissing": false }, { "appId": "fb72c9f1", "reviewerId": "aa7e75e4", "scores": [3, 5, 4, 5, 4, 4], "total": 25, "isMissing": false }, { "appId": "fb72c9f1", "reviewerId": "0bf3b110", "scores": [3, 4, 5, 5, 4, 5], "total": 26, "isMissing": false }, { "appId": "fb72c9f1", "reviewerId": "f8fae246", "scores": [4, 4, 4, 4, 4, 5], "total": 25, "isMissing": false }, { "appId": "656b25d3", "reviewerId": "aa7e75e4", "scores": [2, 5, 5, 4, 3, 3], "total": 22, "isMissing": false }, { "appId": "656b25d3", "reviewerId": "2dcc8dce", "scores": null, "total": null, "isMissing": true }, { "appId": "656b25d3", "reviewerId": "f8fae246", "scores": [4, 5, 4, 5, 5, 4], "total": 27, "isMissing": false }, { "appId": "2f3c5170", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "2f3c5170", "reviewerId": "82694715", "scores": [3, 2, 1, 1, 3, 2], "total": 12, "isMissing": false }, { "appId": "2f3c5170", "reviewerId": "0bf3b110", "scores": [4, 3, 3, 3, 2, 3], "total": 18, "isMissing": false }, { "appId": "cf980a4e", "reviewerId": "aa7e75e4", "scores": [3, 5, 5, 5, 4, 5], "total": 27, "isMissing": false }, { "appId": "cf980a4e", "reviewerId": "8bc11b1a", "scores": [3, 5, 3, 5, 5, 5], "total": 26, "isMissing": false }, { "appId": "cf980a4e", "reviewerId": "82694715", "scores": [4, 3, 3, 3, 4, 4], "total": 21, "isMissing": false }, { "appId": "d45f9015", "reviewerId": "aa7e75e4", "scores": [3, 5, 5, 4, 4, 3], "total": 24, "isMissing": false }, { "appId": "d45f9015", "reviewerId": "b6f35ccf", "scores": [4, 4, 4, 5, 4, 5], "total": 26, "isMissing": false }, { "appId": "d45f9015", "reviewerId": "0bf3b110", "scores": [3, 3, 4, 4, 4, 4], "total": 22, "isMissing": false }, { "appId": "8096e863", "reviewerId": "aa7e75e4", "scores": [3, 5, 5, 4, 5, 4], "total": 26, "isMissing": false }, { "appId": "8096e863", "reviewerId": "82694715", "scores": [4, 3, 4, 3, 5, 4], "total": 23, "isMissing": false }, { "appId": "8096e863", "reviewerId": "f8fae246", "scores": [4, 4, 5, 5, 5, 3], "total": 26, "isMissing": false }, { "appId": "15798af8", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "15798af8", "reviewerId": "0bf3b110", "scores": [5, 5, 5, 4, 5, 3], "total": 27, "isMissing": false }, { "appId": "15798af8", "reviewerId": "b13ae3fa", "scores": [5, 5, 4, 4, 4, 4], "total": 26, "isMissing": false }, { "appId": "b5770ab6", "reviewerId": "aa7e75e4", "scores": [5, 5, 5, 5, 5, 4], "total": 29, "isMissing": false }, { "appId": "b5770ab6", "reviewerId": "e5541a84", "scores": [4, 3, 3, 3, 4, 3], "total": 20, "isMissing": false }, { "appId": "b5770ab6", "reviewerId": "f8fae246", "scores": [5, 5, 4, 5, 3, 5], "total": 27, "isMissing": false }, { "appId": "53f74c91", "reviewerId": "aa7e75e4", "scores": [5, 5, 5, 5, 5, 4], "total": 29, "isMissing": false }, { "appId": "53f74c91", "reviewerId": "b6f35ccf", "scores": [3, 5, 5, 5, 4, 5], "total": 27, "isMissing": false }, { "appId": "53f74c91", "reviewerId": "b13ae3fa", "scores": [4, 4, 4, 5, 5, 4], "total": 26, "isMissing": false }, { "appId": "fc9b2d97", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 5, 3, 3], "total": 25, "isMissing": false }, { "appId": "fc9b2d97", "reviewerId": "b13ae3fa", "scores": [4, 4, 3, 4, 3, 4], "total": 22, "isMissing": false }, { "appId": "fc9b2d97", "reviewerId": "f8fae246", "scores": [4, 3, 4, 4, 3, 3], "total": 21, "isMissing": false }, { "appId": "fc61c4f0", "reviewerId": "aa7e75e4", "scores": [3, 4, 4, 4, 4, 4], "total": 23, "isMissing": false }, { "appId": "fc61c4f0", "reviewerId": "b6f35ccf", "scores": [3, 3, 3, 3, 4, 4], "total": 20, "isMissing": false }, { "appId": "fc61c4f0", "reviewerId": "82694715", "scores": [5, 4, 5, 4, 4, 4], "total": 26, "isMissing": false }, { "appId": "35522084", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "35522084", "reviewerId": "2dcc8dce", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "35522084", "reviewerId": "97760f4d", "scores": [3, 2, 1, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "72fee0ab", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "72fee0ab", "reviewerId": "b6f35ccf", "scores": [2, 2, 1, 1, 3, 1], "total": 10, "isMissing": false }, { "appId": "72fee0ab", "reviewerId": "82694715", "scores": [3, 2, 2, 1, 3, 1], "total": 12, "isMissing": false }, { "appId": "4930c251", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 4, 5, 4], "total": 27, "isMissing": false }, { "appId": "4930c251", "reviewerId": "b6f35ccf", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "4930c251", "reviewerId": "f8fae246", "scores": [4, 4, 3, 4, 4, 4], "total": 23, "isMissing": false }, { "appId": "3dcfc161", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "3dcfc161", "reviewerId": "8bc11b1a", "scores": [5, 4, 5, 5, 4, 4], "total": 27, "isMissing": false }, { "appId": "3dcfc161", "reviewerId": "a8460a69", "scores": [3, 4, 5, 3, 1, 4], "total": 20, "isMissing": false }, { "appId": "42a2f43a", "reviewerId": "aa7e75e4", "scores": [3, 4, 3, 4, 4, 3], "total": 21, "isMissing": false }, { "appId": "42a2f43a", "reviewerId": "97760f4d", "scores": [2, 2, 1, 1, 2, 2], "total": 10, "isMissing": false }, { "appId": "42a2f43a", "reviewerId": "a8460a69", "scores": [2, 1, 2, 2, 1, 2], "total": 10, "isMissing": false }, { "appId": "24d2c7fa", "reviewerId": "aa7e75e4", "scores": [2, 2, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "24d2c7fa", "reviewerId": "8bc11b1a", "scores": [5, 4, 3, 5, 3, 3], "total": 23, "isMissing": false }, { "appId": "24d2c7fa", "reviewerId": "a8460a69", "scores": [3, 2, 4, 2, 4, 4], "total": 19, "isMissing": false }, { "appId": "b6bba995", "reviewerId": "b2f71d47", "scores": null, "total": null, "isMissing": true }, { "appId": "b6bba995", "reviewerId": "aa7e75e4", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "b6bba995", "reviewerId": "a8460a69", "scores": [5, 4, 4, 4, 5, 5], "total": 27, "isMissing": false }, { "appId": "46ece589", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 4, 5, 4], "total": 27, "isMissing": false }, { "appId": "46ece589", "reviewerId": "b13ae3fa", "scores": [5, 4, 3, 4, 5, 3], "total": 24, "isMissing": false }, { "appId": "46ece589", "reviewerId": "e5541a84", "scores": [4, 2, 4, 2, 4, 3], "total": 19, "isMissing": false }, { "appId": "2568bf71", "reviewerId": "aa7e75e4", "scores": [5, 5, 5, 5, 4, 4], "total": 28, "isMissing": false }, { "appId": "2568bf71", "reviewerId": "e5541a84", "scores": [4, 3, 4, 3, 3, 3], "total": 20, "isMissing": false }, { "appId": "2568bf71", "reviewerId": "f8fae246", "scores": [5, 5, 5, 4, 4, 3], "total": 26, "isMissing": false }, { "appId": "3c285e3a", "reviewerId": "d6b872de", "scores": null, "total": null, "isMissing": true }, { "appId": "3c285e3a", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "3c285e3a", "reviewerId": "f8fae246", "scores": [5, 4, 3, 3, 5, 4], "total": 24, "isMissing": false }, { "appId": "301f8a7a", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "301f8a7a", "reviewerId": "0bf3b110", "scores": [4, 3, 3, 4, 3, 4], "total": 21, "isMissing": false }, { "appId": "301f8a7a", "reviewerId": "f8fae246", "scores": [4, 5, 4, 5, 2, 3], "total": 23, "isMissing": false }, { "appId": "394bd44e", "reviewerId": "aa7e75e4", "scores": [4, 4, 5, 5, 4, 5], "total": 27, "isMissing": false }, { "appId": "394bd44e", "reviewerId": "6a7e558e", "scores": [5, 4, 4, 4, 4, 4], "total": 25, "isMissing": false }, { "appId": "394bd44e", "reviewerId": "f8fae246", "scores": [5, 4, 4, 4, 3, 5], "total": 25, "isMissing": false }, { "appId": "899a6976", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "899a6976", "reviewerId": "b6f35ccf", "scores": [2, 2, 3, 2, 2, 2], "total": 13, "isMissing": false }, { "appId": "899a6976", "reviewerId": "a8460a69", "scores": [3, 3, 3, 2, 1, 2], "total": 14, "isMissing": false }, { "appId": "9b8b042c", "reviewerId": "aa7e75e4", "scores": [5, 5, 5, 5, 4, 5], "total": 29, "isMissing": false }, { "appId": "9b8b042c", "reviewerId": "6a7e558e", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "9b8b042c", "reviewerId": "f8fae246", "scores": [5, 4, 5, 5, 4, 4], "total": 27, "isMissing": false }, { "appId": "d36c4d5f", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 4, 4, 4], "total": 26, "isMissing": false }, { "appId": "d36c4d5f", "reviewerId": "2dcc8dce", "scores": null, "total": null, "isMissing": true }, { "appId": "d36c4d5f", "reviewerId": "97760f4d", "scores": null, "total": null, "isMissing": true }, { "appId": "67e44e39", "reviewerId": "aa7e75e4", "scores": [3, 3, 4, 4, 4, 2], "total": 20, "isMissing": false }, { "appId": "67e44e39", "reviewerId": "8bc11b1a", "scores": [3, 4, 3, 3, 2, 3], "total": 18, "isMissing": false }, { "appId": "67e44e39", "reviewerId": "82694715", "scores": [3, 3, 2, 4, 4, 3], "total": 19, "isMissing": false }, { "appId": "51c3d96b", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "51c3d96b", "reviewerId": "2dcc8dce", "scores": null, "total": null, "isMissing": true }, { "appId": "51c3d96b", "reviewerId": "f8fae246", "scores": [4, 3, 4, 3, 3, 5], "total": 22, "isMissing": false }, { "appId": "52f4241d", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "52f4241d", "reviewerId": "0bf3b110", "scores": [5, 4, 4, 5, 4, 2], "total": 24, "isMissing": false }, { "appId": "52f4241d", "reviewerId": "f8fae246", "scores": [5, 4, 4, 4, 3, 4], "total": 24, "isMissing": false }, { "appId": "f3a5f4d8", "reviewerId": "aa7e75e4", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "f3a5f4d8", "reviewerId": "2dcc8dce", "scores": null, "total": null, "isMissing": true }, { "appId": "f3a5f4d8", "reviewerId": "b13ae3fa", "scores": [4, 4, 3, 4, 4, 4], "total": 23, "isMissing": false }, { "appId": "ec634cb6", "reviewerId": "aa7e75e4", "scores": [5, 5, 4, 4, 5, 5], "total": 28, "isMissing": false }, { "appId": "ec634cb6", "reviewerId": "6a7e558e", "scores": [4, 5, 5, 4, 5, 5], "total": 28, "isMissing": false }, { "appId": "ec634cb6", "reviewerId": "f8fae246", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "916136be", "reviewerId": "aa7e75e4", "scores": [4, 5, 4, 4, 5, 5], "total": 27, "isMissing": false }, { "appId": "916136be", "reviewerId": "a8460a69", "scores": [5, 4, 4, 4, 5, 5], "total": 27, "isMissing": false }, { "appId": "916136be", "reviewerId": "51df1f35", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "abc5d885", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "abc5d885", "reviewerId": "e5541a84", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "abc5d885", "reviewerId": "f8fae246", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "075e39bb", "reviewerId": "aa7e75e4", "scores": [4, 5, 4, 5, 5, 5], "total": 28, "isMissing": false }, { "appId": "075e39bb", "reviewerId": "51df1f35", "scores": [5, 5, 5, 5, 5, 3], "total": 28, "isMissing": false }, { "appId": "075e39bb", "reviewerId": "b13ae3fa", "scores": [5, 4, 4, 4, 4, 3], "total": 24, "isMissing": false }, { "appId": "6ccc26e3", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "6ccc26e3", "reviewerId": "a8460a69", "scores": [4, 3, 4, 2, 2, 3], "total": 18, "isMissing": false }, { "appId": "6ccc26e3", "reviewerId": "82694715", "scores": [5, 2, 2, 4, 4, 2], "total": 19, "isMissing": false }, { "appId": "c53ab805", "reviewerId": "aa7e75e4", "scores": [3, 4, 4, 3, 3, 4], "total": 21, "isMissing": false }, { "appId": "c53ab805", "reviewerId": "a8460a69", "scores": [2, 3, 2, 2, 2, 3], "total": 14, "isMissing": false }, { "appId": "c53ab805", "reviewerId": "e5541a84", "scores": [3, 2, 2, 2, 2, 3], "total": 14, "isMissing": false }, { "appId": "b66f4912", "reviewerId": "aa7e75e4", "scores": [2, 2, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "b66f4912", "reviewerId": "a8460a69", "scores": [3, 2, 3, 2, 2, 2], "total": 14, "isMissing": false }, { "appId": "b66f4912", "reviewerId": "51df1f35", "scores": [2, 2, 1, 1, 2, 1], "total": 9, "isMissing": false }, { "appId": "af03aacc", "reviewerId": "d6b872de", "scores": [5, 4, 5, 3, 5, 3], "total": 25, "isMissing": false }, { "appId": "af03aacc", "reviewerId": "aa7e75e4", "scores": [5, 5, 4, 4, 5, 5], "total": 28, "isMissing": false }, { "appId": "af03aacc", "reviewerId": "a8460a69", "scores": [3, 4, 4, 4, 3, 4], "total": 22, "isMissing": false }, { "appId": "f056b290", "reviewerId": "aa7e75e4", "scores": [4, 4, 5, 4, 5, 5], "total": 27, "isMissing": false }, { "appId": "f056b290", "reviewerId": "b13ae3fa", "scores": [3, 4, 3, 5, 3, 3], "total": 21, "isMissing": false }, { "appId": "f056b290", "reviewerId": "f8fae246", "scores": [5, 4, 4, 3, 4, 4], "total": 24, "isMissing": false }, { "appId": "21d8c31f", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 4, 5, 4], "total": 22, "isMissing": false }, { "appId": "21d8c31f", "reviewerId": "e5541a84", "scores": [3, 2, 3, 3, 3, 3], "total": 17, "isMissing": false }, { "appId": "21d8c31f", "reviewerId": "f8fae246", "scores": [4, 3, 3, 3, 3, 2], "total": 18, "isMissing": false }, { "appId": "374e622b", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 5, 4, 4], "total": 27, "isMissing": false }, { "appId": "374e622b", "reviewerId": "a8460a69", "scores": [3, 4, 5, 5, 4, 4], "total": 25, "isMissing": false }, { "appId": "374e622b", "reviewerId": "82694715", "scores": [5, 4, 3, 4, 4, 3], "total": 23, "isMissing": false }, { "appId": "ef81d375", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 4, 4, 4], "total": 26, "isMissing": false }, { "appId": "ef81d375", "reviewerId": "a8460a69", "scores": [4, 5, 4, 4, 4, 5], "total": 26, "isMissing": false }, { "appId": "ef81d375", "reviewerId": "0bf3b110", "scores": [5, 4, 4, 5, 5, 5], "total": 28, "isMissing": false }, { "appId": "641fcbc1", "reviewerId": "aa7e75e4", "scores": [5, 5, 5, 5, 5, 4], "total": 29, "isMissing": false }, { "appId": "641fcbc1", "reviewerId": "b6f35ccf", "scores": [4, 4, 5, 3, 4, 4], "total": 24, "isMissing": false }, { "appId": "641fcbc1", "reviewerId": "b13ae3fa", "scores": [5, 5, 4, 5, 4, 5], "total": 28, "isMissing": false }, { "appId": "5d3cfda6", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "5d3cfda6", "reviewerId": "97760f4d", "scores": [3, 4, 4, 3, 3, 3], "total": 20, "isMissing": false }, { "appId": "5d3cfda6", "reviewerId": "a8460a69", "scores": [3, 2, 4, 3, 2, 3], "total": 17, "isMissing": false }, { "appId": "ae0f336f", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 2, 1], "total": 7, "isMissing": false }, { "appId": "ae0f336f", "reviewerId": "97760f4d", "scores": [2, 1, 1, 1, 1, 2], "total": 8, "isMissing": false }, { "appId": "ae0f336f", "reviewerId": "0bf3b110", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "130b5a68", "reviewerId": "aa7e75e4", "scores": [2, 2, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "130b5a68", "reviewerId": "a8460a69", "scores": [3, 4, 4, 3, 3, 3], "total": 20, "isMissing": false }, { "appId": "130b5a68", "reviewerId": "f8fae246", "scores": [3, 1, 1, 1, 1, 2], "total": 9, "isMissing": false }, { "appId": "43dc6e73", "reviewerId": "aa7e75e4", "scores": [2, 2, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "43dc6e73", "reviewerId": "b6f35ccf", "scores": [3, 3, 3, 4, 3, 2], "total": 18, "isMissing": false }, { "appId": "43dc6e73", "reviewerId": "0bf3b110", "scores": [3, 4, 3, 3, 3, 3], "total": 19, "isMissing": false }, { "appId": "8d07fb33", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 4, 5, 4], "total": 27, "isMissing": false }, { "appId": "8d07fb33", "reviewerId": "2dcc8dce", "scores": null, "total": null, "isMissing": true }, { "appId": "8d07fb33", "reviewerId": "f8fae246", "scores": [5, 5, 4, 4, 5, 5], "total": 28, "isMissing": false }, { "appId": "4e56e82c", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "4e56e82c", "reviewerId": "2dcc8dce", "scores": null, "total": null, "isMissing": true }, { "appId": "4e56e82c", "reviewerId": "e5541a84", "scores": [3, 1, 1, 2, 2, 2], "total": 11, "isMissing": false }, { "appId": "3e5d6ded", "reviewerId": "aa7e75e4", "scores": [2, 3, 3, 3, 3, 2], "total": 16, "isMissing": false }, { "appId": "3e5d6ded", "reviewerId": "2dcc8dce", "scores": null, "total": null, "isMissing": true }, { "appId": "3e5d6ded", "reviewerId": "b13ae3fa", "scores": [2, 1, 2, 1, 1, 1], "total": 8, "isMissing": false }, { "appId": "abc26e26", "reviewerId": "aa7e75e4", "scores": [2, 2, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "abc26e26", "reviewerId": "a8460a69", "scores": [5, 3, 4, 3, 4, 3], "total": 22, "isMissing": false }, { "appId": "abc26e26", "reviewerId": "0bf3b110", "scores": [4, 4, 3, 3, 5, 2], "total": 21, "isMissing": false }, { "appId": "fe78883c", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "fe78883c", "reviewerId": "9f93e88d", "scores": [3, 2, 3, 2, 3, 2], "total": 15, "isMissing": false }, { "appId": "fe78883c", "reviewerId": "b6f35ccf", "scores": [2, 2, 3, 1, 2, 2], "total": 12, "isMissing": false }, { "appId": "748e3150", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "748e3150", "reviewerId": "8bc11b1a", "scores": [5, 4, 4, 4, 3, 4], "total": 24, "isMissing": false }, { "appId": "748e3150", "reviewerId": "a8460a69", "scores": [3, 3, 4, 4, 2, 3], "total": 19, "isMissing": false }, { "appId": "177e1a0e", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 5, 4, 5], "total": 28, "isMissing": false }, { "appId": "177e1a0e", "reviewerId": "03eb26c0", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "177e1a0e", "reviewerId": "a8460a69", "scores": [5, 4, 3, 4, 4, 5], "total": 25, "isMissing": false }, { "appId": "fcf16a07", "reviewerId": "cf28b4d4", "scores": [1, 2, 1, 1, 2, 2], "total": 9, "isMissing": false }, { "appId": "fcf16a07", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "fcf16a07", "reviewerId": "c64c1b04", "scores": [2, 2, 3, 1, 2, 1], "total": 11, "isMissing": false }, { "appId": "f225f40c", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "f225f40c", "reviewerId": "c64c1b04", "scores": null, "total": null, "isMissing": true }, { "appId": "f225f40c", "reviewerId": "a8460a69", "scores": [2, 3, 4, 3, 2, 3], "total": 17, "isMissing": false }, { "appId": "5f6d560b", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "5f6d560b", "reviewerId": "51df1f35", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "5f6d560b", "reviewerId": "c5ab77ac", "scores": [5, 3, 3, 3, 3, 3], "total": 20, "isMissing": false }, { "appId": "a49fcbe2", "reviewerId": "aa7e75e4", "scores": [2, 4, 3, 4, 4, 5], "total": 22, "isMissing": false }, { "appId": "a49fcbe2", "reviewerId": "c64c1b04", "scores": [2, 2, 2, 3, 3, 2], "total": 14, "isMissing": false }, { "appId": "a49fcbe2", "reviewerId": "03eb26c0", "scores": [4, 5, 5, 5, 4, 5], "total": 28, "isMissing": false }, { "appId": "c36bf172", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 5, 5, 3], "total": 27, "isMissing": false }, { "appId": "c36bf172", "reviewerId": "c64c1b04", "scores": null, "total": null, "isMissing": true }, { "appId": "c36bf172", "reviewerId": "0bf3b110", "scores": null, "total": null, "isMissing": true }, { "appId": "fb18c4a8", "reviewerId": "10ab4ebb", "scores": [4, 5, 5, 5, 4, 4], "total": 27, "isMissing": false }, { "appId": "fb18c4a8", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 4, 4, 5], "total": 27, "isMissing": false }, { "appId": "fb18c4a8", "reviewerId": "c5ab77ac", "scores": [4, 5, 5, 5, 5, 5], "total": 29, "isMissing": false }, { "appId": "7d2450a5", "reviewerId": "aa7e75e4", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "7d2450a5", "reviewerId": "c5ab77ac", "scores": [4, 5, 5, 4, 5, 4], "total": 27, "isMissing": false }, { "appId": "7d2450a5", "reviewerId": "f8fae246", "scores": [4, 4, 4, 4, 3, 3], "total": 22, "isMissing": false }, { "appId": "0a2d6e70", "reviewerId": "aa7e75e4", "scores": [3, 4, 4, 4, 3, 3], "total": 21, "isMissing": false }, { "appId": "0a2d6e70", "reviewerId": "8bc11b1a", "scores": [4, 3, 3, 4, 4, 3], "total": 21, "isMissing": false }, { "appId": "0a2d6e70", "reviewerId": "f8fae246", "scores": [5, 4, 5, 4, 5, 3], "total": 26, "isMissing": false }, { "appId": "d263e815", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 5, 4, 5], "total": 28, "isMissing": false }, { "appId": "d263e815", "reviewerId": "f8fae246", "scores": [4, 3, 4, 4, 4, 3], "total": 22, "isMissing": false }, { "appId": "d263e815", "reviewerId": "eac868b4", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "e4278e05", "reviewerId": "aa7e75e4", "scores": [3, 4, 5, 5, 4, 3], "total": 24, "isMissing": false }, { "appId": "e4278e05", "reviewerId": "8bc11b1a", "scores": [3, 5, 3, 5, 4, 3], "total": 23, "isMissing": false }, { "appId": "e4278e05", "reviewerId": "f8fae246", "scores": [4, 3, 4, 4, 4, 4], "total": 23, "isMissing": false }, { "appId": "5af1b0c0", "reviewerId": "aa7e75e4", "scores": [4, 5, 4, 5, 5, 5], "total": 28, "isMissing": false }, { "appId": "5af1b0c0", "reviewerId": "0bf3b110", "scores": null, "total": null, "isMissing": true }, { "appId": "5af1b0c0", "reviewerId": "c5ab77ac", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "197a5644", "reviewerId": "aa7e75e4", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "197a5644", "reviewerId": "f8fae246", "scores": [5, 3, 4, 3, 4, 3], "total": 22, "isMissing": false }, { "appId": "197a5644", "reviewerId": "eac868b4", "scores": [1, 2, 1, 2, 2, 2], "total": 10, "isMissing": false }, { "appId": "99388f31", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 5, 5, 4], "total": 28, "isMissing": false }, { "appId": "99388f31", "reviewerId": "c5ab77ac", "scores": [4, 5, 5, 5, 5, 5], "total": 29, "isMissing": false }, { "appId": "99388f31", "reviewerId": "f8fae246", "scores": [5, 5, 4, 4, 3, 4], "total": 25, "isMissing": false }, { "appId": "0abf3922", "reviewerId": "aa7e75e4", "scores": [4, 4, 3, 4, 4, 3], "total": 22, "isMissing": false }, { "appId": "0abf3922", "reviewerId": "8bc11b1a", "scores": [3, 3, 3, 3, 4, 3], "total": 19, "isMissing": false }, { "appId": "0abf3922", "reviewerId": "f8fae246", "scores": [3, 4, 4, 3, 3, 4], "total": 21, "isMissing": false }, { "appId": "4c98d092", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "4c98d092", "reviewerId": "8bc11b1a", "scores": [5, 3, 4, 4, 4, 5], "total": 25, "isMissing": false }, { "appId": "4c98d092", "reviewerId": "f8fae246", "scores": [1, 3, 3, 3, 3, 4], "total": 17, "isMissing": false }, { "appId": "6a6ba9ce", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "6a6ba9ce", "reviewerId": "8bc11b1a", "scores": [4, 3, 4, 4, 3, 3], "total": 21, "isMissing": false }, { "appId": "6a6ba9ce", "reviewerId": "f8fae246", "scores": [4, 2, 1, 1, 1, 2], "total": 11, "isMissing": false }, { "appId": "abe16bf0", "reviewerId": "aa7e75e4", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "abe16bf0", "reviewerId": "f8fae246", "scores": [5, 3, 4, 3, 4, 4], "total": 23, "isMissing": false }, { "appId": "abe16bf0", "reviewerId": "eac868b4", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "088de5a7", "reviewerId": "aa7e75e4", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "088de5a7", "reviewerId": "8bc11b1a", "scores": [5, 4, 4, 4, 5, 3], "total": 25, "isMissing": false }, { "appId": "088de5a7", "reviewerId": "f8fae246", "scores": [4, 4, 3, 3, 4, 3], "total": 21, "isMissing": false }, { "appId": "e4458816", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "e4458816", "reviewerId": "51df1f35", "scores": [2, 3, 3, 2, 3, 2], "total": 15, "isMissing": false }, { "appId": "e4458816", "reviewerId": "f8fae246", "scores": [4, 3, 3, 4, 4, 5], "total": 23, "isMissing": false }, { "appId": "4ec5e6d3", "reviewerId": "aa7e75e4", "scores": [4, 5, 4, 4, 5, 5], "total": 27, "isMissing": false }, { "appId": "4ec5e6d3", "reviewerId": "c64c1b04", "scores": null, "total": null, "isMissing": true }, { "appId": "4ec5e6d3", "reviewerId": "f8fae246", "scores": [5, 4, 4, 4, 3, 3], "total": 23, "isMissing": false }, { "appId": "04ca2551", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "04ca2551", "reviewerId": "51df1f35", "scores": [3, 2, 1, 3, 4, 2], "total": 15, "isMissing": false }, { "appId": "04ca2551", "reviewerId": "f8fae246", "scores": [4, 4, 4, 4, 3, 3], "total": 22, "isMissing": false }, { "appId": "422d6b91", "reviewerId": "aa7e75e4", "scores": [5, 5, 5, 4, 5, 5], "total": 29, "isMissing": false }, { "appId": "422d6b91", "reviewerId": "c64c1b04", "scores": null, "total": null, "isMissing": true }, { "appId": "422d6b91", "reviewerId": "f8fae246", "scores": [5, 4, 4, 3, 4, 5], "total": 25, "isMissing": false }, { "appId": "0c325940", "reviewerId": "aa7e75e4", "scores": [4, 4, 5, 5, 4, 5], "total": 27, "isMissing": false }, { "appId": "0c325940", "reviewerId": "8bc11b1a", "scores": [5, 5, 4, 5, 5, 5], "total": 29, "isMissing": false }, { "appId": "0c325940", "reviewerId": "f8fae246", "scores": [5, 4, 4, 5, 3, 4], "total": 25, "isMissing": false }, { "appId": "b6fc038a", "reviewerId": "aa7e75e4", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "b6fc038a", "reviewerId": "8bc11b1a", "scores": [4, 5, 4, 4, 4, 5], "total": 26, "isMissing": false }, { "appId": "b6fc038a", "reviewerId": "f8fae246", "scores": [3, 3, 5, 3, 4, 4], "total": 22, "isMissing": false }, { "appId": "50a90aa6", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "50a90aa6", "reviewerId": "0bf3b110", "scores": null, "total": null, "isMissing": true }, { "appId": "50a90aa6", "reviewerId": "f8fae246", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "fc553965", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 5, 5, 4], "total": 28, "isMissing": false }, { "appId": "fc553965", "reviewerId": "0bf3b110", "scores": null, "total": null, "isMissing": true }, { "appId": "fc553965", "reviewerId": "f8fae246", "scores": [3, 4, 5, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "76e72d90", "reviewerId": "aa7e75e4", "scores": [4, 5, 4, 4, 5, 5], "total": 27, "isMissing": false }, { "appId": "76e72d90", "reviewerId": "0bf3b110", "scores": null, "total": null, "isMissing": true }, { "appId": "76e72d90", "reviewerId": "eac868b4", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "55acafcc", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 5, 4, 5], "total": 28, "isMissing": false }, { "appId": "55acafcc", "reviewerId": "c5ab77ac", "scores": [4, 5, 4, 5, 5, 5], "total": 28, "isMissing": false }, { "appId": "55acafcc", "reviewerId": "f8fae246", "scores": [5, 5, 4, 4, 5, 4], "total": 27, "isMissing": false }, { "appId": "e3054fff", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 5, 4, 5], "total": 28, "isMissing": false }, { "appId": "e3054fff", "reviewerId": "0bf3b110", "scores": null, "total": null, "isMissing": true }, { "appId": "e3054fff", "reviewerId": "c5ab77ac", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "4b8c3a45", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "4b8c3a45", "reviewerId": "c5ab77ac", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "4b8c3a45", "reviewerId": "f8fae246", "scores": [5, 3, 2, 2, 3, 3], "total": 18, "isMissing": false }, { "appId": "21379912", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 5, 4, 4], "total": 27, "isMissing": false }, { "appId": "21379912", "reviewerId": "8bc11b1a", "scores": [5, 4, 3, 5, 5, 3], "total": 25, "isMissing": false }, { "appId": "21379912", "reviewerId": "f8fae246", "scores": [5, 4, 5, 4, 4, 5], "total": 27, "isMissing": false }, { "appId": "c5e8120c", "reviewerId": "cf28b4d4", "scores": [5, 5, 4, 4, 3, 3], "total": 24, "isMissing": false }, { "appId": "c5e8120c", "reviewerId": "aa7e75e4", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "c5e8120c", "reviewerId": "c64c1b04", "scores": [1, 2, 2, 3, 2, 2], "total": 12, "isMissing": false }, { "appId": "b9ee0442", "reviewerId": "aa7e75e4", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "b9ee0442", "reviewerId": "8bc11b1a", "scores": [5, 4, 5, 5, 5, 5], "total": 29, "isMissing": false }, { "appId": "b9ee0442", "reviewerId": "f8fae246", "scores": [4, 3, 4, 3, 4, 4], "total": 22, "isMissing": false }, { "appId": "66afc4ee", "reviewerId": "aa7e75e4", "scores": [5, 5, 5, 5, 4, 4], "total": 28, "isMissing": false }, { "appId": "66afc4ee", "reviewerId": "c5ab77ac", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "66afc4ee", "reviewerId": "eac868b4", "scores": [4, 5, 4, 5, 4, 5], "total": 27, "isMissing": false }, { "appId": "9e7d0490", "reviewerId": "b2f71d47", "scores": null, "total": null, "isMissing": true }, { "appId": "9e7d0490", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 4, 4, 4], "total": 26, "isMissing": false }, { "appId": "9e7d0490", "reviewerId": "f8fae246", "scores": [5, 4, 3, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "8a9541cc", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "8a9541cc", "reviewerId": "0bf3b110", "scores": null, "total": null, "isMissing": true }, { "appId": "8a9541cc", "reviewerId": "f8fae246", "scores": [4, 2, 3, 2, 3, 4], "total": 18, "isMissing": false }, { "appId": "43a1a7e7", "reviewerId": "aa7e75e4", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "43a1a7e7", "reviewerId": "8bc11b1a", "scores": [5, 5, 3, 4, 5, 4], "total": 26, "isMissing": false }, { "appId": "43a1a7e7", "reviewerId": "f8fae246", "scores": [4, 3, 3, 3, 3, 3], "total": 19, "isMissing": false }, { "appId": "2e98fa6e", "reviewerId": "aa7e75e4", "scores": [2, 3, 2, 3, 3, 2], "total": 15, "isMissing": false }, { "appId": "2e98fa6e", "reviewerId": "51df1f35", "scores": [1, 2, 2, 3, 2, 1], "total": 11, "isMissing": false }, { "appId": "2e98fa6e", "reviewerId": "f8fae246", "scores": [4, 4, 4, 4, 3, 4], "total": 23, "isMissing": false }, { "appId": "52aac0a0", "reviewerId": "aa7e75e4", "scores": [4, 4, 5, 5, 4, 4], "total": 26, "isMissing": false }, { "appId": "52aac0a0", "reviewerId": "f8fae246", "scores": [5, 4, 4, 4, 3, 4], "total": 24, "isMissing": false }, { "appId": "52aac0a0", "reviewerId": "eac868b4", "scores": [3, 4, 3, 3, 4, 4], "total": 21, "isMissing": false }, { "appId": "ba5a6711", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 5, 4, 5], "total": 28, "isMissing": false }, { "appId": "ba5a6711", "reviewerId": "51df1f35", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "ba5a6711", "reviewerId": "eac868b4", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "fbfa27de", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "fbfa27de", "reviewerId": "8bc11b1a", "scores": [3, 3, 2, 2, 3, 4], "total": 17, "isMissing": false }, { "appId": "fbfa27de", "reviewerId": "c5ab77ac", "scores": [4, 3, 3, 3, 3, 3], "total": 19, "isMissing": false }, { "appId": "42bd3c4a", "reviewerId": "cf28b4d4", "scores": [3, 1, 2, 2, 2, 1], "total": 11, "isMissing": false }, { "appId": "42bd3c4a", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "42bd3c4a", "reviewerId": "51df1f35", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "7a3d7dd5", "reviewerId": "cf28b4d4", "scores": [4, 2, 3, 2, 2, 3], "total": 16, "isMissing": false }, { "appId": "7a3d7dd5", "reviewerId": "aa7e75e4", "scores": [3, 4, 3, 4, 3, 4], "total": 21, "isMissing": false }, { "appId": "7a3d7dd5", "reviewerId": "c5ab77ac", "scores": [5, 3, 3, 3, 3, 3], "total": 20, "isMissing": false }, { "appId": "4fa0305f", "reviewerId": "692dfc0e", "scores": [5, 5, 5, 4, 5, 4], "total": 28, "isMissing": false }, { "appId": "4fa0305f", "reviewerId": "aa7e75e4", "scores": [5, 5, 5, 4, 4, 5], "total": 28, "isMissing": false }, { "appId": "4fa0305f", "reviewerId": "c5ab77ac", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "27375234", "reviewerId": "aa7e75e4", "scores": [3, 4, 5, 5, 5, 4], "total": 26, "isMissing": false }, { "appId": "27375234", "reviewerId": "0bf3b110", "scores": null, "total": null, "isMissing": true }, { "appId": "27375234", "reviewerId": "c5ab77ac", "scores": [5, 5, 4, 4, 5, 5], "total": 28, "isMissing": false }, { "appId": "096a5249", "reviewerId": "aa7e75e4", "scores": [5, 5, 5, 4, 5, 5], "total": 29, "isMissing": false }, { "appId": "096a5249", "reviewerId": "51df1f35", "scores": [4, 4, 4, 5, 5, 4], "total": 26, "isMissing": false }, { "appId": "096a5249", "reviewerId": "0bf3b110", "scores": null, "total": null, "isMissing": true }, { "appId": "2c9593db", "reviewerId": "cf28b4d4", "scores": [4, 3, 4, 3, 3, 4], "total": 21, "isMissing": false }, { "appId": "2c9593db", "reviewerId": "aa7e75e4", "scores": [3, 5, 5, 5, 4, 5], "total": 27, "isMissing": false }, { "appId": "2c9593db", "reviewerId": "c5ab77ac", "scores": [4, 5, 5, 3, 5, 3], "total": 25, "isMissing": false }, { "appId": "d4796094", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "d4796094", "reviewerId": "9f93e88d", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "d4796094", "reviewerId": "c5ab77ac", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "ac640aa2", "reviewerId": "aa7e75e4", "scores": [2, 2, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "ac640aa2", "reviewerId": "c5ab77ac", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "ac640aa2", "reviewerId": "eac868b4", "scores": [2, 2, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "97795f86", "reviewerId": "aa7e75e4", "scores": [3, 4, 4, 4, 4, 4], "total": 23, "isMissing": false }, { "appId": "97795f86", "reviewerId": "51df1f35", "scores": [2, 3, 2, 3, 3, 2], "total": 15, "isMissing": false }, { "appId": "97795f86", "reviewerId": "eac868b4", "scores": [1, 2, 1, 3, 2, 3], "total": 12, "isMissing": false }, { "appId": "c40c66f5", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "c40c66f5", "reviewerId": "9f93e88d", "scores": [3, 3, 3, 4, 3, 3], "total": 19, "isMissing": false }, { "appId": "c40c66f5", "reviewerId": "c5ab77ac", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "c07eb78c", "reviewerId": "cf28b4d4", "scores": [4, 3, 2, 4, 2, 3], "total": 18, "isMissing": false }, { "appId": "c07eb78c", "reviewerId": "aa7e75e4", "scores": [2, 2, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "c07eb78c", "reviewerId": "eac868b4", "scores": [2, 4, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "b13f3550", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "b13f3550", "reviewerId": "c5ab77ac", "scores": [3, 5, 4, 5, 4, 5], "total": 26, "isMissing": false }, { "appId": "b13f3550", "reviewerId": "eac868b4", "scores": [2, 2, 3, 4, 2, 2], "total": 15, "isMissing": false }, { "appId": "adf428e9", "reviewerId": "aa7e75e4", "scores": [3, 4, 4, 4, 4, 4], "total": 23, "isMissing": false }, { "appId": "adf428e9", "reviewerId": "0bf3b110", "scores": null, "total": null, "isMissing": true }, { "appId": "adf428e9", "reviewerId": "c5ab77ac", "scores": [4, 5, 4, 4, 5, 5], "total": 27, "isMissing": false }, { "appId": "930a0613", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "930a0613", "reviewerId": "51df1f35", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "930a0613", "reviewerId": "eac868b4", "scores": [3, 2, 2, 2, 2, 2], "total": 13, "isMissing": false }, { "appId": "9e6b2961", "reviewerId": "aa7e75e4", "scores": [5, 5, 5, 4, 5, 4], "total": 28, "isMissing": false }, { "appId": "9e6b2961", "reviewerId": "0bf3b110", "scores": null, "total": null, "isMissing": true }, { "appId": "9e6b2961", "reviewerId": "c5ab77ac", "scores": [4, 5, 5, 5, 5, 5], "total": 29, "isMissing": false }, { "appId": "c4e52338", "reviewerId": "cf28b4d4", "scores": [4, 4, 4, 5, 4, 5], "total": 26, "isMissing": false }, { "appId": "c4e52338", "reviewerId": "aa7e75e4", "scores": [3, 5, 4, 5, 4, 5], "total": 26, "isMissing": false }, { "appId": "c4e52338", "reviewerId": "0bf3b110", "scores": null, "total": null, "isMissing": true }, { "appId": "cffea628", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 5, 5, 4], "total": 28, "isMissing": false }, { "appId": "cffea628", "reviewerId": "c64c1b04", "scores": [5, 4, 4, 4, 5, 3], "total": 25, "isMissing": false }, { "appId": "cffea628", "reviewerId": "8c055b0d", "scores": [5, 5, 4, 5, 5, 4], "total": 28, "isMissing": false }, { "appId": "d046a659", "reviewerId": "cf28b4d4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "d046a659", "reviewerId": "aa7e75e4", "scores": [2, 2, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "d046a659", "reviewerId": "eac868b4", "scores": [3, 2, 2, 2, 2, 2], "total": 13, "isMissing": false }, { "appId": "d89774a7", "reviewerId": "cf28b4d4", "scores": [4, 4, 5, 4, 4, 3], "total": 24, "isMissing": false }, { "appId": "d89774a7", "reviewerId": "aa7e75e4", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "d89774a7", "reviewerId": "8c055b0d", "scores": [4, 4, 4, 4, 4, 3], "total": 23, "isMissing": false }, { "appId": "a840430f", "reviewerId": "aa7e75e4", "scores": [4, 5, 4, 5, 5, 5], "total": 28, "isMissing": false }, { "appId": "a840430f", "reviewerId": "8c055b0d", "scores": [3, 3, 4, 3, 3, 4], "total": 20, "isMissing": false }, { "appId": "a840430f", "reviewerId": "51df1f35", "scores": [5, 4, 3, 3, 4, 3], "total": 22, "isMissing": false }, { "appId": "59eae178", "reviewerId": "d6b872de", "scores": [5, 1, 5, 1, 3, 2], "total": 17, "isMissing": false }, { "appId": "59eae178", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "59eae178", "reviewerId": "8c055b0d", "scores": [1, 2, 1, 2, 1, 2], "total": 9, "isMissing": false }, { "appId": "f0d7302e", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "f0d7302e", "reviewerId": "c64c1b04", "scores": [2, 2, 2, 3, 2, 2], "total": 13, "isMissing": false }, { "appId": "f0d7302e", "reviewerId": "eac868b4", "scores": [3, 2, 2, 3, 3, 3], "total": 16, "isMissing": false }, { "appId": "ea87f18e", "reviewerId": "b2f71d47", "scores": [4, 5, 5, 5, 4, 5], "total": 28, "isMissing": false }, { "appId": "ea87f18e", "reviewerId": "aa7e75e4", "scores": [5, 5, 5, 4, 4, 5], "total": 28, "isMissing": false }, { "appId": "ea87f18e", "reviewerId": "8c055b0d", "scores": [4, 3, 3, 3, 4, 2], "total": 19, "isMissing": false }, { "appId": "0b70328e", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "0b70328e", "reviewerId": "8c055b0d", "scores": [1, 1, 2, 2, 1, 1], "total": 8, "isMissing": false }, { "appId": "0b70328e", "reviewerId": "51df1f35", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "8e2e5335", "reviewerId": "cf28b4d4", "scores": [5, 3, 5, 4, 5, 5], "total": 27, "isMissing": false }, { "appId": "8e2e5335", "reviewerId": "aa7e75e4", "scores": [5, 5, 5, 5, 5, 4], "total": 29, "isMissing": false }, { "appId": "8e2e5335", "reviewerId": "51df1f35", "scores": [3, 4, 3, 4, 3, 3], "total": 20, "isMissing": false }, { "appId": "b5850590", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "b5850590", "reviewerId": "9f93e88d", "scores": [2, 2, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "b5850590", "reviewerId": "51df1f35", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "ae110c7f", "reviewerId": "c64c1b04", "scores": [1, 3, 2, 3, 1, 2], "total": 12, "isMissing": false }, { "appId": "ae110c7f", "reviewerId": "c5ab77ac", "scores": [4, 5, 4, 4, 5, 4], "total": 26, "isMissing": false }, { "appId": "ae110c7f", "reviewerId": "eac868b4", "scores": [3, 3, 2, 4, 3, 4], "total": 19, "isMissing": false }, { "appId": "524fa50c", "reviewerId": "10ab4ebb", "scores": [4, 5, 5, 4, 4, 4], "total": 26, "isMissing": false }, { "appId": "524fa50c", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 5, 4, 3], "total": 26, "isMissing": false }, { "appId": "524fa50c", "reviewerId": "c64c1b04", "scores": [4, 4, 5, 4, 4, 3], "total": 24, "isMissing": false }, { "appId": "266f7152", "reviewerId": "692dfc0e", "scores": [2, 2, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "266f7152", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "266f7152", "reviewerId": "51df1f35", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "e2e48b20", "reviewerId": "aa7e75e4", "scores": [2, 2, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "e2e48b20", "reviewerId": "51df1f35", "scores": [2, 1, 1, 1, 2, 1], "total": 8, "isMissing": false }, { "appId": "e2e48b20", "reviewerId": "f8fae246", "scores": [4, 1, 1, 1, 1, 1], "total": 9, "isMissing": false }, { "appId": "d1da8131", "reviewerId": "d6b872de", "scores": [5, 5, 5, 5, 5, 4], "total": 29, "isMissing": false }, { "appId": "d1da8131", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 5, 5, 4], "total": 28, "isMissing": false }, { "appId": "d1da8131", "reviewerId": "8c055b0d", "scores": [3, 3, 3, 4, 3, 3], "total": 19, "isMissing": false }, { "appId": "b14f0c8b", "reviewerId": "aa7e75e4", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "b14f0c8b", "reviewerId": "c5ab77ac", "scores": [5, 5, 5, 4, 5, 5], "total": 29, "isMissing": false }, { "appId": "b14f0c8b", "reviewerId": "eac868b4", "scores": [3, 3, 2, 3, 3, 2], "total": 16, "isMissing": false }, { "appId": "7a5c67e8", "reviewerId": "10ab4ebb", "scores": [5, 5, 5, 5, 4, 4], "total": 28, "isMissing": false }, { "appId": "7a5c67e8", "reviewerId": "d6b872de", "scores": null, "total": null, "isMissing": true }, { "appId": "7a5c67e8", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 4, 4, 2], "total": 24, "isMissing": false }, { "appId": "43b9f753", "reviewerId": "d6b872de", "scores": null, "total": null, "isMissing": true }, { "appId": "43b9f753", "reviewerId": "aa7e75e4", "scores": [5, 5, 5, 5, 4, 5], "total": 29, "isMissing": false }, { "appId": "43b9f753", "reviewerId": "8c055b0d", "scores": [4, 4, 5, 4, 5, 5], "total": 27, "isMissing": false }, { "appId": "92f1476a", "reviewerId": "b2f71d47", "scores": [4, 4, 4, 5, 4, 4], "total": 25, "isMissing": false }, { "appId": "92f1476a", "reviewerId": "aa7e75e4", "scores": [3, 4, 3, 2, 2, 2], "total": 16, "isMissing": false }, { "appId": "92f1476a", "reviewerId": "8c055b0d", "scores": [3, 3, 4, 3, 2, 3], "total": 18, "isMissing": false }, { "appId": "18451078", "reviewerId": "aa7e75e4", "scores": [2, 2, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "18451078", "reviewerId": "c64c1b04", "scores": [2, 1, 2, 1, 2, 1], "total": 9, "isMissing": false }, { "appId": "18451078", "reviewerId": "c5ab77ac", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "4719afd7", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 5, 4, 4], "total": 27, "isMissing": false }, { "appId": "4719afd7", "reviewerId": "51df1f35", "scores": [4, 5, 4, 5, 5, 3], "total": 26, "isMissing": false }, { "appId": "4719afd7", "reviewerId": "c5ab77ac", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "d987f0d3", "reviewerId": "10ab4ebb", "scores": [2, 3, 5, 5, 5, 5], "total": 25, "isMissing": false }, { "appId": "d987f0d3", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 5, 5, 5], "total": 29, "isMissing": false }, { "appId": "d987f0d3", "reviewerId": "c64c1b04", "scores": null, "total": null, "isMissing": true }, { "appId": "7d7c775c", "reviewerId": "b2f71d47", "scores": [4, 3, 4, 3, 4, 3], "total": 21, "isMissing": false }, { "appId": "7d7c775c", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "7d7c775c", "reviewerId": "9f93e88d", "scores": [3, 4, 3, 4, 4, 4], "total": 22, "isMissing": false }, { "appId": "66372c8a", "reviewerId": "cf28b4d4", "scores": [1, 4, 3, 4, 3, 4], "total": 19, "isMissing": false }, { "appId": "66372c8a", "reviewerId": "aa7e75e4", "scores": [2, 3, 3, 3, 3, 3], "total": 17, "isMissing": false }, { "appId": "66372c8a", "reviewerId": "51df1f35", "scores": [1, 2, 3, 3, 2, 2], "total": 13, "isMissing": false }, { "appId": "c41946ce", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "c41946ce", "reviewerId": "9f93e88d", "scores": [2, 2, 2, 2, 2, 3], "total": 13, "isMissing": false }, { "appId": "c41946ce", "reviewerId": "c64c1b04", "scores": [2, 1, 1, 2, 2, 2], "total": 10, "isMissing": false }, { "appId": "809ee7be", "reviewerId": "10ab4ebb", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "809ee7be", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 4, 5, 5], "total": 28, "isMissing": false }, { "appId": "809ee7be", "reviewerId": "c5ab77ac", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "13516b8f", "reviewerId": "10ab4ebb", "scores": [5, 4, 5, 4, 5, 3], "total": 26, "isMissing": false }, { "appId": "13516b8f", "reviewerId": "b2f71d47", "scores": null, "total": null, "isMissing": true }, { "appId": "13516b8f", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 4, 5, 4], "total": 27, "isMissing": false }, { "appId": "14b68522", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 2, 3], "total": 17, "isMissing": false }, { "appId": "14b68522", "reviewerId": "c64c1b04", "scores": [4, 4, 4, 5, 4, 3], "total": 24, "isMissing": false }, { "appId": "14b68522", "reviewerId": "eac868b4", "scores": [1, 1, 1, 3, 2, 2], "total": 10, "isMissing": false }, { "appId": "17112208", "reviewerId": "cf28b4d4", "scores": [5, 4, 3, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "17112208", "reviewerId": "aa7e75e4", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "17112208", "reviewerId": "51df1f35", "scores": [4, 4, 3, 5, 5, 3], "total": 24, "isMissing": false }, { "appId": "a76905f5", "reviewerId": "10ab4ebb", "scores": [3, 4, 2, 2, 3, 3], "total": 17, "isMissing": false }, { "appId": "a76905f5", "reviewerId": "cf28b4d4", "scores": [3, 3, 2, 2, 3, 3], "total": 16, "isMissing": false }, { "appId": "a76905f5", "reviewerId": "aa7e75e4", "scores": [2, 2, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "950bf3af", "reviewerId": "aa7e75e4", "scores": [5, 5, 5, 5, 3, 4], "total": 27, "isMissing": false }, { "appId": "950bf3af", "reviewerId": "51df1f35", "scores": [4, 4, 3, 3, 4, 3], "total": 21, "isMissing": false }, { "appId": "950bf3af", "reviewerId": "c5ab77ac", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "958a40c7", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 5, 4, 5], "total": 28, "isMissing": false }, { "appId": "958a40c7", "reviewerId": "51df1f35", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "958a40c7", "reviewerId": "f8fae246", "scores": [4, 5, 4, 5, 4, 4], "total": 26, "isMissing": false }, { "appId": "2aaac395", "reviewerId": "10ab4ebb", "scores": [5, 3, 5, 3, 4, 3], "total": 23, "isMissing": false }, { "appId": "2aaac395", "reviewerId": "aa7e75e4", "scores": [5, 4, 5, 5, 5, 5], "total": 29, "isMissing": false }, { "appId": "2aaac395", "reviewerId": "51df1f35", "scores": [4, 4, 3, 4, 3, 3], "total": 21, "isMissing": false }, { "appId": "3c502dce", "reviewerId": "10ab4ebb", "scores": [4, 5, 5, 5, 5, 5], "total": 29, "isMissing": false }, { "appId": "3c502dce", "reviewerId": "aa7e75e4", "scores": [4, 4, 4, 4, 3, 4], "total": 23, "isMissing": false }, { "appId": "3c502dce", "reviewerId": "c5ab77ac", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "a92dd0ff", "reviewerId": "aa7e75e4", "scores": [4, 4, 5, 5, 3, 4], "total": 25, "isMissing": false }, { "appId": "a92dd0ff", "reviewerId": "c64c1b04", "scores": [5, 4, 4, 4, 4, 4], "total": 25, "isMissing": false }, { "appId": "a92dd0ff", "reviewerId": "51df1f35", "scores": [5, 5, 4, 5, 5, 2], "total": 26, "isMissing": false }, { "appId": "3a83a627", "reviewerId": "d6b872de", "scores": [4, 3, 5, 3, 4, 4], "total": 23, "isMissing": false }, { "appId": "3a83a627", "reviewerId": "aa7e75e4", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "3a83a627", "reviewerId": "9f93e88d", "scores": [4, 3, 4, 3, 4, 4], "total": 22, "isMissing": false }, { "appId": "c4b2cccf", "reviewerId": "d6b872de", "scores": [5, 2, 4, 1, 2, 3], "total": 17, "isMissing": false }, { "appId": "c4b2cccf", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "c4b2cccf", "reviewerId": "9f93e88d", "scores": [3, 3, 3, 3, 3, 2], "total": 17, "isMissing": false }, { "appId": "feb0bab9", "reviewerId": "aa7e75e4", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "feb0bab9", "reviewerId": "9f93e88d", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "feb0bab9", "reviewerId": "9f818f77", "scores": [3, 4, 3, 4, 3, 4], "total": 21, "isMissing": false }, { "appId": "f0a8667c", "reviewerId": "aa7e75e4", "scores": [4, 4, 5, 5, 4, 5], "total": 27, "isMissing": false }, { "appId": "f0a8667c", "reviewerId": "f8fae246", "scores": [5, 4, 3, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "f0a8667c", "reviewerId": "9f818f77", "scores": [5, 5, 5, 5, 4, 4], "total": 28, "isMissing": false }, { "appId": "c0667051", "reviewerId": "b2f71d47", "scores": [2, 2, 4, 2, 3, 2], "total": 15, "isMissing": false }, { "appId": "c0667051", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "c0667051", "reviewerId": "9f93e88d", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "a075ab1d", "reviewerId": "10ab4ebb", "scores": [3, 5, 5, 5, 4, 4], "total": 26, "isMissing": false }, { "appId": "a075ab1d", "reviewerId": "b2f71d47", "scores": null, "total": null, "isMissing": true }, { "appId": "a075ab1d", "reviewerId": "aa7e75e4", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "799ed1bc", "reviewerId": "55dd1903", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "799ed1bc", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "799ed1bc", "reviewerId": "9f93e88d", "scores": [2, 2, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "af5e6a93", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 5, 5, 4], "total": 28, "isMissing": false }, { "appId": "af5e6a93", "reviewerId": "9f93e88d", "scores": [3, 3, 3, 3, 3, 4], "total": 19, "isMissing": false }, { "appId": "af5e6a93", "reviewerId": "f8fae246", "scores": [4, 4, 4, 3, 3, 4], "total": 22, "isMissing": false }, { "appId": "e7d6a64b", "reviewerId": "55dd1903", "scores": [5, 5, 5, 4, 4, 3], "total": 26, "isMissing": false }, { "appId": "e7d6a64b", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "e7d6a64b", "reviewerId": "9f93e88d", "scores": [4, 3, 4, 3, 4, 3], "total": 21, "isMissing": false }, { "appId": "f74a0b6f", "reviewerId": "aa7e75e4", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "f74a0b6f", "reviewerId": "9f93e88d", "scores": [3, 4, 4, 3, 4, 4], "total": 22, "isMissing": false }, { "appId": "f74a0b6f", "reviewerId": "8c055b0d", "scores": [4, 4, 4, 3, 4, 4], "total": 23, "isMissing": false }, { "appId": "f1c8a3f1", "reviewerId": "692dfc0e", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "f1c8a3f1", "reviewerId": "aa7e75e4", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "f1c8a3f1", "reviewerId": "53cf40d8", "scores": null, "total": null, "isMissing": true }, { "appId": "80186b1a", "reviewerId": "55dd1903", "scores": [3, 3, 3, 2, 4, 2], "total": 17, "isMissing": false }, { "appId": "80186b1a", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "80186b1a", "reviewerId": "4c7bc92e", "scores": [3, 2, 2, 2, 2, 2], "total": 13, "isMissing": false }, { "appId": "812a6b2a", "reviewerId": "aa7e75e4", "scores": [5, 5, 5, 4, 4, 4], "total": 27, "isMissing": false }, { "appId": "812a6b2a", "reviewerId": "9f93e88d", "scores": [3, 4, 3, 4, 3, 4], "total": 21, "isMissing": false }, { "appId": "812a6b2a", "reviewerId": "f5da612c", "scores": [5, 4, 4, 5, 4, 3], "total": 25, "isMissing": false }, { "appId": "bad8b49a", "reviewerId": "aa7e75e4", "scores": [2, 2, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "bad8b49a", "reviewerId": "9f93e88d", "scores": [3, 4, 3, 2, 3, 3], "total": 18, "isMissing": false }, { "appId": "bad8b49a", "reviewerId": "8c055b0d", "scores": [2, 3, 4, 2, 2, 3], "total": 16, "isMissing": false }, { "appId": "dfd2d70c", "reviewerId": "55dd1903", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "dfd2d70c", "reviewerId": "aa7e75e4", "scores": [4, 5, 4, 5, 4, 5], "total": 27, "isMissing": false }, { "appId": "dfd2d70c", "reviewerId": "8c055b0d", "scores": [4, 4, 4, 4, 3, 3], "total": 22, "isMissing": false }, { "appId": "a3431ec6", "reviewerId": "692dfc0e", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "a3431ec6", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "a3431ec6", "reviewerId": "c5ab77ac", "scores": [5, 5, 4, 4, 5, 4], "total": 27, "isMissing": false }, { "appId": "9dfdf211", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 5, 4, 5], "total": 28, "isMissing": false }, { "appId": "9dfdf211", "reviewerId": "f8fae246", "scores": [5, 4, 4, 4, 3, 3], "total": 23, "isMissing": false }, { "appId": "9dfdf211", "reviewerId": "7d47672c", "scores": [5, 5, 5, 4, 5, 5], "total": 29, "isMissing": false }, { "appId": "af9927c9", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "af9927c9", "reviewerId": "f8fae246", "scores": [4, 3, 2, 2, 3, 2], "total": 16, "isMissing": false }, { "appId": "af9927c9", "reviewerId": "7d47672c", "scores": [3, 3, 3, 2, 2, 2], "total": 15, "isMissing": false }, { "appId": "4bb581f7", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "4bb581f7", "reviewerId": "4c7bc92e", "scores": [3, 2, 3, 3, 2, 3], "total": 16, "isMissing": false }, { "appId": "4bb581f7", "reviewerId": "9f818f77", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "27444b64", "reviewerId": "aa7e75e4", "scores": [3, 5, 5, 5, 5, 5], "total": 28, "isMissing": false }, { "appId": "27444b64", "reviewerId": "f5da612c", "scores": [5, 5, 5, 3, 4, 4], "total": 26, "isMissing": false }, { "appId": "27444b64", "reviewerId": "040a27dd", "scores": [5, 4, 4, 5, 4, 3], "total": 25, "isMissing": false }, { "appId": "48536f07", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 5, 5, 5], "total": 29, "isMissing": false }, { "appId": "48536f07", "reviewerId": "4c7bc92e", "scores": [4, 5, 5, 5, 5, 5], "total": 29, "isMissing": false }, { "appId": "48536f07", "reviewerId": "f8fae246", "scores": [5, 4, 5, 4, 5, 4], "total": 27, "isMissing": false }, { "appId": "d2c7e89d", "reviewerId": "d6b872de", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "d2c7e89d", "reviewerId": "aa7e75e4", "scores": [2, 2, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "d2c7e89d", "reviewerId": "040a27dd", "scores": [3, 3, 3, 2, 3, 1], "total": 15, "isMissing": false }, { "appId": "57bd1ea2", "reviewerId": "aa7e75e4", "scores": [4, 4, 3, 4, 3, 4], "total": 22, "isMissing": false }, { "appId": "57bd1ea2", "reviewerId": "9f818f77", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "57bd1ea2", "reviewerId": "040a27dd", "scores": [4, 3, 3, 4, 3, 2], "total": 19, "isMissing": false }, { "appId": "a1bc3f8e", "reviewerId": "692dfc0e", "scores": [4, 4, 5, 4, 4, 4], "total": 25, "isMissing": false }, { "appId": "a1bc3f8e", "reviewerId": "aa7e75e4", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "a1bc3f8e", "reviewerId": "9f93e88d", "scores": [3, 3, 3, 3, 4, 3], "total": 19, "isMissing": false }, { "appId": "0897ef2e", "reviewerId": "692dfc0e", "scores": [1, 1, 2, 1, 1, 1], "total": 7, "isMissing": false }, { "appId": "0897ef2e", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "0897ef2e", "reviewerId": "9f93e88d", "scores": [4, 3, 4, 3, 4, 3], "total": 21, "isMissing": false }, { "appId": "fd983dd5", "reviewerId": "9f93e88d", "scores": [4, 4, 5, 3, 5, 4], "total": 25, "isMissing": false }, { "appId": "fd983dd5", "reviewerId": "8c055b0d", "scores": [3, 4, 4, 4, 3, 3], "total": 21, "isMissing": false }, { "appId": "fd983dd5", "reviewerId": "f5da612c", "scores": [3, 5, 4, 3, 4, 4], "total": 23, "isMissing": false }, { "appId": "1ae135aa", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 4, 5, 5], "total": 28, "isMissing": false }, { "appId": "1ae135aa", "reviewerId": "f5da612c", "scores": [5, 5, 5, 4, 5, 5], "total": 29, "isMissing": false }, { "appId": "1ae135aa", "reviewerId": "040a27dd", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "a20b1047", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "a20b1047", "reviewerId": "f8fae246", "scores": [3, 1, 1, 1, 1, 1], "total": 8, "isMissing": false }, { "appId": "a20b1047", "reviewerId": "7d47672c", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "e4edef3c", "reviewerId": "aa7e75e4", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "e4edef3c", "reviewerId": "9f93e88d", "scores": [3, 3, 4, 4, 3, 3], "total": 20, "isMissing": false }, { "appId": "e4edef3c", "reviewerId": "c5ab77ac", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "fc0996c7", "reviewerId": "55dd1903", "scores": [2, 4, 3, 3, 2, 2], "total": 16, "isMissing": false }, { "appId": "fc0996c7", "reviewerId": "aa7e75e4", "scores": [2, 2, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "fc0996c7", "reviewerId": "8c055b0d", "scores": [3, 3, 2, 3, 3, 2], "total": 16, "isMissing": false }, { "appId": "027fb3dd", "reviewerId": "55dd1903", "scores": [4, 4, 5, 5, 5, 3], "total": 26, "isMissing": false }, { "appId": "027fb3dd", "reviewerId": "aa7e75e4", "scores": [2, 2, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "027fb3dd", "reviewerId": "f5da612c", "scores": [5, 5, 5, 4, 5, 5], "total": 29, "isMissing": false }, { "appId": "862ffbed", "reviewerId": "692dfc0e", "scores": [2, 2, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "862ffbed", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "862ffbed", "reviewerId": "8c055b0d", "scores": [2, 1, 1, 1, 1, 2], "total": 8, "isMissing": false }, { "appId": "c104564f", "reviewerId": "9f93e88d", "scores": [3, 2, 3, 2, 2, 3], "total": 15, "isMissing": false }, { "appId": "c104564f", "reviewerId": "f5da612c", "scores": [4, 2, 2, 2, 2, 2], "total": 14, "isMissing": false }, { "appId": "c104564f", "reviewerId": "9f818f77", "scores": [4, 4, 4, 4, 3, 3], "total": 22, "isMissing": false }, { "appId": "2e7786c2", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 5, 4, 4], "total": 27, "isMissing": false }, { "appId": "2e7786c2", "reviewerId": "9f93e88d", "scores": [3, 5, 3, 3, 4, 4], "total": 22, "isMissing": false }, { "appId": "2e7786c2", "reviewerId": "f8fae246", "scores": [5, 5, 5, 5, 4, 4], "total": 28, "isMissing": false }, { "appId": "e4ffb405", "reviewerId": "9f93e88d", "scores": [3, 3, 3, 2, 3, 3], "total": 17, "isMissing": false }, { "appId": "e4ffb405", "reviewerId": "4c7bc92e", "scores": [3, 3, 3, 2, 2, 2], "total": 15, "isMissing": false }, { "appId": "e4ffb405", "reviewerId": "f8fae246", "scores": [3, 1, 1, 1, 1, 2], "total": 9, "isMissing": false }, { "appId": "f486e014", "reviewerId": "55dd1903", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "f486e014", "reviewerId": "c5ab77ac", "scores": [5, 5, 4, 4, 4, 3], "total": 25, "isMissing": false }, { "appId": "f486e014", "reviewerId": "f8fae246", "scores": [4, 1, 1, 1, 1, 2], "total": 10, "isMissing": false }, { "appId": "eec976d0", "reviewerId": "55dd1903", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "eec976d0", "reviewerId": "9f93e88d", "scores": [2, 2, 3, 2, 2, 2], "total": 13, "isMissing": false }, { "appId": "eec976d0", "reviewerId": "f8fae246", "scores": [2, 1, 1, 1, 1, 1], "total": 7, "isMissing": false }, { "appId": "ff390b45", "reviewerId": "08086f0f", "scores": [5, 3, 4, 3, 5, 3], "total": 23, "isMissing": false }, { "appId": "ff390b45", "reviewerId": "c5ab77ac", "scores": [4, 4, 4, 4, 4, 3], "total": 23, "isMissing": false }, { "appId": "ff390b45", "reviewerId": "9f818f77", "scores": [2, 2, 3, 4, 3, 3], "total": 17, "isMissing": false }, { "appId": "6bf9b654", "reviewerId": "10ab4ebb", "scores": [4, 4, 3, 3, 4, 3], "total": 21, "isMissing": false }, { "appId": "6bf9b654", "reviewerId": "f8fae246", "scores": [4, 1, 1, 1, 1, 2], "total": 10, "isMissing": false }, { "appId": "6bf9b654", "reviewerId": "7d47672c", "scores": [3, 3, 3, 2, 4, 3], "total": 18, "isMissing": false }, { "appId": "7c602602", "reviewerId": "d6b872de", "scores": null, "total": null, "isMissing": true }, { "appId": "7c602602", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 5, 4, 4], "total": 27, "isMissing": false }, { "appId": "7c602602", "reviewerId": "f8fae246", "scores": [5, 3, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "1581f077", "reviewerId": "aa7e75e4", "scores": [5, 5, 5, 5, 4, 4], "total": 28, "isMissing": false }, { "appId": "1581f077", "reviewerId": "6a7e558e", "scores": [5, 5, 5, 5, 4, 5], "total": 29, "isMissing": false }, { "appId": "1581f077", "reviewerId": "f8fae246", "scores": [5, 5, 5, 5, 5, 4], "total": 29, "isMissing": false }, { "appId": "3b8d3d2f", "reviewerId": "aa7e75e4", "scores": [5, 5, 5, 5, 4, 4], "total": 28, "isMissing": false }, { "appId": "3b8d3d2f", "reviewerId": "6a7e558e", "scores": [5, 5, 4, 5, 4, 5], "total": 28, "isMissing": false }, { "appId": "3b8d3d2f", "reviewerId": "f8fae246", "scores": [5, 4, 5, 4, 4, 4], "total": 26, "isMissing": false }, { "appId": "1accbc1c", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "1accbc1c", "reviewerId": "f8fae246", "scores": [5, 3, 4, 3, 3, 4], "total": 22, "isMissing": false }, { "appId": "1accbc1c", "reviewerId": "f5da612c", "scores": [3, 4, 3, 4, 3, 3], "total": 20, "isMissing": false }, { "appId": "3a6e46b1", "reviewerId": "d6b872de", "scores": null, "total": null, "isMissing": true }, { "appId": "3a6e46b1", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "3a6e46b1", "reviewerId": "f8fae246", "scores": [4, 3, 3, 3, 2, 3], "total": 18, "isMissing": false }, { "appId": "fc36d2ba", "reviewerId": "b2f71d47", "scores": [2, 3, 2, 3, 2, 2], "total": 14, "isMissing": false }, { "appId": "fc36d2ba", "reviewerId": "aa7e75e4", "scores": [1, 2, 2, 3, 2, 1], "total": 11, "isMissing": false }, { "appId": "fc36d2ba", "reviewerId": "f8fae246", "scores": [3, 1, 1, 2, 1, 3], "total": 11, "isMissing": false }, { "appId": "44f52f34", "reviewerId": "8c055b0d", "scores": [3, 3, 2, 2, 3, 1], "total": 14, "isMissing": false }, { "appId": "44f52f34", "reviewerId": "c5ab77ac", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "44f52f34", "reviewerId": "9f818f77", "scores": [4, 5, 5, 4, 4, 3], "total": 25, "isMissing": false }, { "appId": "56931a6a", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "56931a6a", "reviewerId": "f5da612c", "scores": [4, 3, 4, 3, 3, 4], "total": 21, "isMissing": false }, { "appId": "56931a6a", "reviewerId": "7d47672c", "scores": [3, 3, 3, 2, 1, 1], "total": 13, "isMissing": false }, { "appId": "a9bfb563", "reviewerId": "f8fae246", "scores": [2, 3, 3, 3, 2, 4], "total": 17, "isMissing": false }, { "appId": "a9bfb563", "reviewerId": "f5da612c", "scores": [3, 5, 5, 5, 5, 5], "total": 28, "isMissing": false }, { "appId": "a9bfb563", "reviewerId": "9f818f77", "scores": [3, 3, 4, 3, 4, 3], "total": 20, "isMissing": false }, { "appId": "3d511f5c", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "3d511f5c", "reviewerId": "f8fae246", "scores": [4, 4, 3, 3, 4, 2], "total": 20, "isMissing": false }, { "appId": "3d511f5c", "reviewerId": "f5da612c", "scores": [4, 4, 5, 5, 5, 4], "total": 27, "isMissing": false }, { "appId": "f7d3da7e", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "f7d3da7e", "reviewerId": "f8fae246", "scores": [4, 2, 1, 1, 1, 4], "total": 13, "isMissing": false }, { "appId": "f7d3da7e", "reviewerId": "9f818f77", "scores": [1, 3, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "b5f3d0c5", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "b5f3d0c5", "reviewerId": "9f93e88d", "scores": [2, 2, 2, 2, 3, 2], "total": 13, "isMissing": false }, { "appId": "b5f3d0c5", "reviewerId": "7d47672c", "scores": [5, 3, 3, 4, 4, 5], "total": 24, "isMissing": false }, { "appId": "a8e05edd", "reviewerId": "aa7e75e4", "scores": [4, 4, 5, 5, 4, 4], "total": 26, "isMissing": false }, { "appId": "a8e05edd", "reviewerId": "4c7bc92e", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "a8e05edd", "reviewerId": "f8fae246", "scores": [5, 4, 5, 4, 4, 4], "total": 26, "isMissing": false }, { "appId": "5dfc8e3c", "reviewerId": "aa7e75e4", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "5dfc8e3c", "reviewerId": "9f93e88d", "scores": [4, 4, 4, 3, 4, 4], "total": 23, "isMissing": false }, { "appId": "5dfc8e3c", "reviewerId": "7d47672c", "scores": [3, 3, 4, 3, 4, 4], "total": 21, "isMissing": false }, { "appId": "1c525fbb", "reviewerId": "aa7e75e4", "scores": [5, 4, 5, 4, 5, 5], "total": 28, "isMissing": false }, { "appId": "1c525fbb", "reviewerId": "08086f0f", "scores": [5, 5, 2, 2, 4, 3], "total": 21, "isMissing": false }, { "appId": "1c525fbb", "reviewerId": "f5da612c", "scores": [5, 5, 5, 4, 4, 5], "total": 28, "isMissing": false }, { "appId": "fbb1e8c1", "reviewerId": "9f93e88d", "scores": [4, 3, 4, 4, 3, 3], "total": 21, "isMissing": false }, { "appId": "fbb1e8c1", "reviewerId": "f8fae246", "scores": [5, 2, 3, 2, 3, 2], "total": 17, "isMissing": false }, { "appId": "fbb1e8c1", "reviewerId": "9f818f77", "scores": [4, 4, 5, 4, 4, 5], "total": 26, "isMissing": false }, { "appId": "4015a0f8", "reviewerId": "51df1f35", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "4015a0f8", "reviewerId": "f8fae246", "scores": [4, 1, 1, 1, 1, 1], "total": 9, "isMissing": false }, { "appId": "4015a0f8", "reviewerId": "9f818f77", "scores": [2, 2, 3, 3, 3, 2], "total": 15, "isMissing": false }, { "appId": "a35377da", "reviewerId": "d6b872de", "scores": [1, 1, 1, 1, 2, 1], "total": 7, "isMissing": false }, { "appId": "a35377da", "reviewerId": "08086f0f", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "a35377da", "reviewerId": "f8fae246", "scores": [4, 1, 1, 1, 2, 1], "total": 10, "isMissing": false }, { "appId": "9416f717", "reviewerId": "b2f71d47", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "9416f717", "reviewerId": "51df1f35", "scores": [2, 1, 2, 2, 2, 1], "total": 10, "isMissing": false }, { "appId": "9416f717", "reviewerId": "f8fae246", "scores": [4, 3, 2, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "ab977f70", "reviewerId": "f8fae246", "scores": [4, 2, 2, 3, 2, 2], "total": 15, "isMissing": false }, { "appId": "ab977f70", "reviewerId": "f5da612c", "scores": [3, 4, 4, 3, 4, 3], "total": 21, "isMissing": false }, { "appId": "ab977f70", "reviewerId": "7d47672c", "scores": [3, 3, 3, 2, 3, 3], "total": 17, "isMissing": false }, { "appId": "941168df", "reviewerId": "51df1f35", "scores": [2, 1, 2, 2, 2, 2], "total": 11, "isMissing": false }, { "appId": "941168df", "reviewerId": "f8fae246", "scores": [5, 4, 5, 5, 3, 5], "total": 27, "isMissing": false }, { "appId": "941168df", "reviewerId": "9f818f77", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "d1f19218", "reviewerId": "9f93e88d", "scores": [4, 3, 4, 4, 4, 4], "total": 23, "isMissing": false }, { "appId": "d1f19218", "reviewerId": "f8fae246", "scores": [5, 5, 4, 5, 3, 4], "total": 26, "isMissing": false }, { "appId": "d1f19218", "reviewerId": "7d47672c", "scores": [4, 5, 4, 4, 4, 5], "total": 26, "isMissing": false }, { "appId": "c511794e", "reviewerId": "8c055b0d", "scores": [4, 5, 5, 5, 4, 4], "total": 27, "isMissing": false }, { "appId": "c511794e", "reviewerId": "f8fae246", "scores": [4, 3, 3, 4, 3, 3], "total": 20, "isMissing": false }, { "appId": "c511794e", "reviewerId": "7d47672c", "scores": [4, 5, 4, 5, 4, 5], "total": 27, "isMissing": false }, { "appId": "d78c12cc", "reviewerId": "d6b872de", "scores": [5, 4, 5, 4, 5, 4], "total": 27, "isMissing": false }, { "appId": "d78c12cc", "reviewerId": "08086f0f", "scores": [5, 4, 5, 4, 5, 5], "total": 28, "isMissing": false }, { "appId": "d78c12cc", "reviewerId": "f8fae246", "scores": [5, 4, 4, 4, 4, 4], "total": 25, "isMissing": false }, { "appId": "d4ad10fb", "reviewerId": "8c055b0d", "scores": [2, 2, 1, 3, 3, 2], "total": 13, "isMissing": false }, { "appId": "d4ad10fb", "reviewerId": "51df1f35", "scores": [1, 1, 1, 2, 2, 3], "total": 10, "isMissing": false }, { "appId": "d4ad10fb", "reviewerId": "f8fae246", "scores": [4, 3, 2, 4, 3, 3], "total": 19, "isMissing": false }, { "appId": "e73b664e", "reviewerId": "c5ab77ac", "scores": [4, 5, 4, 4, 4, 4], "total": 25, "isMissing": false }, { "appId": "e73b664e", "reviewerId": "f5da612c", "scores": [2, 5, 5, 3, 5, 5], "total": 25, "isMissing": false }, { "appId": "e73b664e", "reviewerId": "7d47672c", "scores": [3, 3, 3, 2, 2, 2], "total": 15, "isMissing": false }, { "appId": "b6370f65", "reviewerId": "55dd1903", "scores": [3, 4, 4, 3, 4, 3], "total": 21, "isMissing": false }, { "appId": "b6370f65", "reviewerId": "51df1f35", "scores": [4, 5, 2, 5, 4, 4], "total": 24, "isMissing": false }, { "appId": "b6370f65", "reviewerId": "7d47672c", "scores": [3, 3, 3, 3, 4, 3], "total": 19, "isMissing": false }, { "appId": "b19dddf9", "reviewerId": "51df1f35", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "b19dddf9", "reviewerId": "7d47672c", "scores": [5, 4, 5, 3, 4, 3], "total": 24, "isMissing": false }, { "appId": "b19dddf9", "reviewerId": "9f818f77", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "b17ae251", "reviewerId": "55dd1903", "scores": [1, 2, 1, 1, 2, 1], "total": 8, "isMissing": false }, { "appId": "b17ae251", "reviewerId": "f8fae246", "scores": [4, 4, 3, 4, 4, 3], "total": 22, "isMissing": false }, { "appId": "b17ae251", "reviewerId": "7d47672c", "scores": [4, 4, 4, 4, 3, 4], "total": 23, "isMissing": false }, { "appId": "7c686561", "reviewerId": "d6b872de", "scores": [3, 1, 2, 1, 1, 1], "total": 9, "isMissing": false }, { "appId": "7c686561", "reviewerId": "51df1f35", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "7c686561", "reviewerId": "f8fae246", "scores": [4, 1, 2, 1, 1, 1], "total": 10, "isMissing": false }, { "appId": "711d4c00", "reviewerId": "55dd1903", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "711d4c00", "reviewerId": "8c055b0d", "scores": [4, 3, 4, 3, 3, 3], "total": 20, "isMissing": false }, { "appId": "711d4c00", "reviewerId": "51df1f35", "scores": [5, 5, 3, 5, 5, 5], "total": 28, "isMissing": false }, { "appId": "6cdff382", "reviewerId": "10ab4ebb", "scores": [3, 1, 3, 1, 1, 1], "total": 10, "isMissing": false }, { "appId": "6cdff382", "reviewerId": "51df1f35", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "6cdff382", "reviewerId": "9f818f77", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "50bcff31", "reviewerId": "d6b872de", "scores": [5, 3, 3, 3, 5, 5], "total": 24, "isMissing": false }, { "appId": "50bcff31", "reviewerId": "51df1f35", "scores": [2, 2, 1, 2, 3, 2], "total": 12, "isMissing": false }, { "appId": "50bcff31", "reviewerId": "f8fae246", "scores": [5, 1, 1, 1, 2, 2], "total": 12, "isMissing": false }, { "appId": "55808b3b", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "55808b3b", "reviewerId": "51df1f35", "scores": [4, 3, 1, 3, 4, 2], "total": 17, "isMissing": false }, { "appId": "55808b3b", "reviewerId": "f8fae246", "scores": [4, 4, 3, 4, 3, 4], "total": 22, "isMissing": false }, { "appId": "3b3e4cc8", "reviewerId": "51df1f35", "scores": [1, 1, 1, 2, 2, 1], "total": 8, "isMissing": false }, { "appId": "3b3e4cc8", "reviewerId": "f8fae246", "scores": [3, 2, 3, 2, 2, 1], "total": 13, "isMissing": false }, { "appId": "3b3e4cc8", "reviewerId": "7d47672c", "scores": [3, 3, 3, 3, 3, 2], "total": 17, "isMissing": false }, { "appId": "ecccddba", "reviewerId": "b2f71d47", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "ecccddba", "reviewerId": "aa7e75e4", "scores": [4, 4, 5, 4, 4, 4], "total": 25, "isMissing": false }, { "appId": "ecccddba", "reviewerId": "f8fae246", "scores": [5, 3, 3, 4, 4, 5], "total": 24, "isMissing": false }, { "appId": "9cb5d30c", "reviewerId": "9f93e88d", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "9cb5d30c", "reviewerId": "51df1f35", "scores": [2, 3, 2, 2, 1, 1], "total": 11, "isMissing": false }, { "appId": "9cb5d30c", "reviewerId": "f5da612c", "scores": [4, 3, 3, 3, 3, 3], "total": 19, "isMissing": false }, { "appId": "ea3a11ff", "reviewerId": "51df1f35", "scores": [3, 3, 2, 4, 4, 3], "total": 19, "isMissing": false }, { "appId": "ea3a11ff", "reviewerId": "f8fae246", "scores": [4, 4, 5, 4, 3, 4], "total": 24, "isMissing": false }, { "appId": "ea3a11ff", "reviewerId": "9f818f77", "scores": [3, 3, 3, 3, 4, 3], "total": 19, "isMissing": false }, { "appId": "cd3095cb", "reviewerId": "55dd1903", "scores": [5, 5, 5, 3, 4, 3], "total": 25, "isMissing": false }, { "appId": "cd3095cb", "reviewerId": "51df1f35", "scores": [4, 3, 3, 3, 4, 2], "total": 19, "isMissing": false }, { "appId": "cd3095cb", "reviewerId": "9f818f77", "scores": [4, 5, 5, 4, 4, 3], "total": 25, "isMissing": false }, { "appId": "d222abbe", "reviewerId": "55dd1903", "scores": [1, 1, 1, 2, 3, 3], "total": 11, "isMissing": false }, { "appId": "d222abbe", "reviewerId": "2959043d", "scores": [4, 3, 3, 3, 4, 3], "total": 20, "isMissing": false }, { "appId": "d222abbe", "reviewerId": "7d47672c", "scores": [3, 3, 4, 2, 3, 3], "total": 18, "isMissing": false }, { "appId": "4eabd8e3", "reviewerId": "9f93e88d", "scores": [3, 4, 4, 4, 4, 3], "total": 22, "isMissing": false }, { "appId": "4eabd8e3", "reviewerId": "2959043d", "scores": [4, 3, 3, 2, 3, 2], "total": 17, "isMissing": false }, { "appId": "4eabd8e3", "reviewerId": "f8fae246", "scores": [4, 4, 4, 4, 3, 5], "total": 24, "isMissing": false }, { "appId": "66364ce8", "reviewerId": "10ab4ebb", "scores": [3, 1, 3, 1, 3, 1], "total": 12, "isMissing": false }, { "appId": "66364ce8", "reviewerId": "aa7e75e4", "scores": [3, 2, 3, 3, 2, 1], "total": 14, "isMissing": false }, { "appId": "66364ce8", "reviewerId": "51df1f35", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "2e14fd41", "reviewerId": "9f93e88d", "scores": [3, 3, 4, 3, 3, 4], "total": 20, "isMissing": false }, { "appId": "2e14fd41", "reviewerId": "2959043d", "scores": [5, 5, 4, 3, 3, 3], "total": 23, "isMissing": false }, { "appId": "2e14fd41", "reviewerId": "f8fae246", "scores": [5, 4, 4, 4, 4, 5], "total": 26, "isMissing": false }, { "appId": "85e07f7f", "reviewerId": "aa7e75e4", "scores": [5, 4, 5, 4, 4, 5], "total": 27, "isMissing": false }, { "appId": "85e07f7f", "reviewerId": "4c7bc92e", "scores": [3, 3, 2, 3, 3, 3], "total": 17, "isMissing": false }, { "appId": "85e07f7f", "reviewerId": "9f818f77", "scores": [4, 4, 4, 3, 3, 4], "total": 22, "isMissing": false }, { "appId": "43aa89af", "reviewerId": "10ab4ebb", "scores": [3, 2, 3, 1, 4, 1], "total": 14, "isMissing": false }, { "appId": "43aa89af", "reviewerId": "51df1f35", "scores": [1, 1, 1, 1, 2, 1], "total": 7, "isMissing": false }, { "appId": "43aa89af", "reviewerId": "f5da612c", "scores": [2, 2, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "b30bc46b", "reviewerId": "aa7e75e4", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "b30bc46b", "reviewerId": "4c7bc92e", "scores": [5, 4, 5, 4, 3, 4], "total": 25, "isMissing": false }, { "appId": "b30bc46b", "reviewerId": "f5da612c", "scores": [5, 3, 4, 3, 3, 5], "total": 23, "isMissing": false }, { "appId": "b0b44be0", "reviewerId": "aa7e75e4", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "b0b44be0", "reviewerId": "2959043d", "scores": [5, 3, 3, 3, 5, 3], "total": 22, "isMissing": false }, { "appId": "b0b44be0", "reviewerId": "4c7bc92e", "scores": [4, 3, 4, 4, 4, 4], "total": 23, "isMissing": false }, { "appId": "75072c35", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "75072c35", "reviewerId": "4c7bc92e", "scores": [3, 3, 4, 2, 1, 2], "total": 15, "isMissing": false }, { "appId": "75072c35", "reviewerId": "f8fae246", "scores": [4, 3, 3, 4, 3, 2], "total": 19, "isMissing": false }, { "appId": "cb33fed8", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "cb33fed8", "reviewerId": "51df1f35", "scores": [3, 2, 3, 2, 2, 1], "total": 13, "isMissing": false }, { "appId": "cb33fed8", "reviewerId": "4c7bc92e", "scores": [4, 2, 4, 2, 2, 2], "total": 16, "isMissing": false }, { "appId": "fd3b8377", "reviewerId": "aa7e75e4", "scores": [5, 4, 5, 4, 5, 5], "total": 28, "isMissing": false }, { "appId": "fd3b8377", "reviewerId": "4c7bc92e", "scores": [4, 5, 5, 5, 5, 5], "total": 29, "isMissing": false }, { "appId": "fd3b8377", "reviewerId": "f5da612c", "scores": [5, 4, 5, 5, 5, 4], "total": 28, "isMissing": false }, { "appId": "a38f4afc", "reviewerId": "aa7e75e4", "scores": [5, 4, 4, 4, 3, 4], "total": 24, "isMissing": false }, { "appId": "a38f4afc", "reviewerId": "51df1f35", "scores": [3, 5, 4, 4, 3, 3], "total": 22, "isMissing": false }, { "appId": "a38f4afc", "reviewerId": "7d47672c", "scores": [4, 4, 5, 4, 4, 4], "total": 25, "isMissing": false }, { "appId": "a0030c5c", "reviewerId": "51df1f35", "scores": [5, 3, 3, 3, 4, 2], "total": 20, "isMissing": false }, { "appId": "a0030c5c", "reviewerId": "4c7bc92e", "scores": [4, 3, 5, 3, 4, 2], "total": 21, "isMissing": false }, { "appId": "a0030c5c", "reviewerId": "f8fae246", "scores": [5, 4, 5, 4, 5, 3], "total": 26, "isMissing": false }, { "appId": "101083ef", "reviewerId": "2959043d", "scores": [1, 1, 2, 1, 2, 1], "total": 8, "isMissing": false }, { "appId": "101083ef", "reviewerId": "51df1f35", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "101083ef", "reviewerId": "4c7bc92e", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "cfb686d3", "reviewerId": "55dd1903", "scores": [4, 5, 5, 4, 4, 5], "total": 27, "isMissing": false }, { "appId": "cfb686d3", "reviewerId": "2959043d", "scores": [4, 3, 3, 3, 3, 3], "total": 19, "isMissing": false }, { "appId": "cfb686d3", "reviewerId": "4c7bc92e", "scores": [3, 3, 5, 3, 2, 3], "total": 19, "isMissing": false }, { "appId": "352e288b", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 5, 4, 5], "total": 28, "isMissing": false }, { "appId": "352e288b", "reviewerId": "2959043d", "scores": [4, 5, 5, 3, 3, 3], "total": 23, "isMissing": false }, { "appId": "352e288b", "reviewerId": "4c7bc92e", "scores": [3, 4, 5, 4, 3, 3], "total": 22, "isMissing": false }, { "appId": "d0c9666d", "reviewerId": "2959043d", "scores": [4, 3, 3, 3, 4, 2], "total": 19, "isMissing": false }, { "appId": "d0c9666d", "reviewerId": "4c7bc92e", "scores": [4, 3, 3, 3, 4, 3], "total": 20, "isMissing": false }, { "appId": "d0c9666d", "reviewerId": "c5ab77ac", "scores": [5, 5, 5, 4, 5, 4], "total": 28, "isMissing": false }, { "appId": "8dd6b561", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "8dd6b561", "reviewerId": "2959043d", "scores": [1, 1, 2, 2, 1, 2], "total": 9, "isMissing": false }, { "appId": "8dd6b561", "reviewerId": "4c7bc92e", "scores": [2, 1, 1, 1, 1, 1], "total": 7, "isMissing": false }, { "appId": "0e145882", "reviewerId": "4c7bc92e", "scores": [3, 2, 2, 2, 2, 2], "total": 13, "isMissing": false }, { "appId": "0e145882", "reviewerId": "c5ab77ac", "scores": [5, 5, 5, 5, 5, 4], "total": 29, "isMissing": false }, { "appId": "0e145882", "reviewerId": "f5da612c", "scores": [5, 3, 3, 3, 3, 3], "total": 20, "isMissing": false }, { "appId": "d55de71c", "reviewerId": "51df1f35", "scores": [2, 2, 3, 3, 2, 3], "total": 15, "isMissing": false }, { "appId": "d55de71c", "reviewerId": "f5da612c", "scores": [3, 5, 5, 4, 3, 3], "total": 23, "isMissing": false }, { "appId": "d55de71c", "reviewerId": "9f818f77", "scores": [5, 5, 5, 4, 5, 5], "total": 29, "isMissing": false }, { "appId": "dec90865", "reviewerId": "55dd1903", "scores": [1, 2, 3, 2, 2, 1], "total": 11, "isMissing": false }, { "appId": "dec90865", "reviewerId": "c5ab77ac", "scores": [4, 5, 5, 5, 5, 5], "total": 29, "isMissing": false }, { "appId": "dec90865", "reviewerId": "9f818f77", "scores": [3, 2, 3, 3, 2, 4], "total": 17, "isMissing": false }, { "appId": "5fc5d8b1", "reviewerId": "2959043d", "scores": [5, 4, 4, 4, 5, 5], "total": 27, "isMissing": false }, { "appId": "5fc5d8b1", "reviewerId": "4c7bc92e", "scores": [5, 4, 5, 5, 5, 5], "total": 29, "isMissing": false }, { "appId": "5fc5d8b1", "reviewerId": "53cf40d8", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "0aa36533", "reviewerId": "4c7bc92e", "scores": [3, 2, 2, 2, 2, 3], "total": 14, "isMissing": false }, { "appId": "0aa36533", "reviewerId": "53cf40d8", "scores": [5, 3, 5, 5, 5, 4], "total": 27, "isMissing": false }, { "appId": "0aa36533", "reviewerId": "e724c212", "scores": [2, 5, 3, 2, 1, 4], "total": 17, "isMissing": false }, { "appId": "09a5db8b", "reviewerId": "2ecb4a0f", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "09a5db8b", "reviewerId": "6a7e558e", "scores": [4, 5, 5, 4, 4, 5], "total": 27, "isMissing": false }, { "appId": "09a5db8b", "reviewerId": "e724c212", "scores": [5, 4, 3, 5, 5, 4], "total": 26, "isMissing": false }, { "appId": "a5797e04", "reviewerId": "aa7e75e4", "scores": [4, 5, 4, 5, 4, 5], "total": 27, "isMissing": false }, { "appId": "a5797e04", "reviewerId": "6a7e558e", "scores": [4, 5, 5, 5, 4, 4], "total": 27, "isMissing": false }, { "appId": "a5797e04", "reviewerId": "4c7bc92e", "scores": [4, 4, 4, 4, 3, 4], "total": 23, "isMissing": false }, { "appId": "388e9389", "reviewerId": "4c7bc92e", "scores": [2, 2, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "388e9389", "reviewerId": "f8fae246", "scores": [4, 2, 2, 3, 4, 3], "total": 18, "isMissing": false }, { "appId": "388e9389", "reviewerId": "e724c212", "scores": [4, 4, 3, 3, 5, 4], "total": 23, "isMissing": false }, { "appId": "e4ad4ae3", "reviewerId": "2ecb4a0f", "scores": [3, 2, 3, 3, 2, 2], "total": 15, "isMissing": false }, { "appId": "e4ad4ae3", "reviewerId": "2959043d", "scores": [2, 2, 1, 2, 2, 1], "total": 10, "isMissing": false }, { "appId": "e4ad4ae3", "reviewerId": "4c7bc92e", "scores": [2, 1, 3, 1, 1, 1], "total": 9, "isMissing": false }, { "appId": "8e97afca", "reviewerId": "2959043d", "scores": [5, 4, 5, 4, 5, 3], "total": 26, "isMissing": false }, { "appId": "8e97afca", "reviewerId": "6a7e558e", "scores": [5, 5, 5, 5, 4, 5], "total": 29, "isMissing": false }, { "appId": "8e97afca", "reviewerId": "4c7bc92e", "scores": [5, 5, 5, 4, 5, 5], "total": 29, "isMissing": false }, { "appId": "e15108cb", "reviewerId": "d6b872de", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "e15108cb", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 5, 4, 5], "total": 28, "isMissing": false }, { "appId": "e15108cb", "reviewerId": "040a27dd", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "0800653a", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 4, 4, 5], "total": 27, "isMissing": false }, { "appId": "0800653a", "reviewerId": "e724c212", "scores": [5, 4, 4, 5, 5, 5], "total": 28, "isMissing": false }, { "appId": "0800653a", "reviewerId": "040a27dd", "scores": [5, 4, 4, 5, 4, 3], "total": 25, "isMissing": false }, { "appId": "18a5ca83", "reviewerId": "d6b872de", "scores": [5, 4, 5, 4, 5, 4], "total": 27, "isMissing": false }, { "appId": "18a5ca83", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 5, 5, 4], "total": 28, "isMissing": false }, { "appId": "18a5ca83", "reviewerId": "040a27dd", "scores": [4, 5, 4, 5, 5, 4], "total": 27, "isMissing": false }, { "appId": "8ca00839", "reviewerId": "692dfc0e", "scores": [4, 5, 5, 4, 5, 5], "total": 28, "isMissing": false }, { "appId": "8ca00839", "reviewerId": "aa7e75e4", "scores": [5, 4, 5, 4, 5, 5], "total": 28, "isMissing": false }, { "appId": "8ca00839", "reviewerId": "4c7bc92e", "scores": [5, 5, 5, 4, 4, 5], "total": 28, "isMissing": false }, { "appId": "8b8fed47", "reviewerId": "692dfc0e", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "8b8fed47", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "8b8fed47", "reviewerId": "53cf40d8", "scores": null, "total": null, "isMissing": true }, { "appId": "e0832cca", "reviewerId": "692dfc0e", "scores": [4, 5, 5, 4, 5, 4], "total": 27, "isMissing": false }, { "appId": "e0832cca", "reviewerId": "aa7e75e4", "scores": [4, 5, 4, 5, 5, 4], "total": 27, "isMissing": false }, { "appId": "e0832cca", "reviewerId": "6a7e558e", "scores": [4, 5, 5, 4, 4, 4], "total": 26, "isMissing": false }, { "appId": "1e6405e6", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "1e6405e6", "reviewerId": "6a7e558e", "scores": [2, 2, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "1e6405e6", "reviewerId": "4c7bc92e", "scores": [3, 3, 3, 2, 2, 3], "total": 16, "isMissing": false }, { "appId": "6c7e6860", "reviewerId": "692dfc0e", "scores": [4, 5, 4, 4, 4, 4], "total": 25, "isMissing": false }, { "appId": "6c7e6860", "reviewerId": "aa7e75e4", "scores": [4, 4, 4, 5, 5, 4], "total": 26, "isMissing": false }, { "appId": "6c7e6860", "reviewerId": "53cf40d8", "scores": null, "total": null, "isMissing": true }, { "appId": "4c796591", "reviewerId": "692dfc0e", "scores": [4, 5, 5, 4, 4, 4], "total": 26, "isMissing": false }, { "appId": "4c796591", "reviewerId": "aa7e75e4", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "4c796591", "reviewerId": "2ecb4a0f", "scores": [5, 4, 4, 4, 4, 3], "total": 24, "isMissing": false }, { "appId": "30446ae4", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 4, 5, 2], "total": 25, "isMissing": false }, { "appId": "30446ae4", "reviewerId": "4c7bc92e", "scores": [4, 3, 4, 3, 5, 4], "total": 23, "isMissing": false }, { "appId": "30446ae4", "reviewerId": "e724c212", "scores": [5, 4, 5, 4, 5, 4], "total": 27, "isMissing": false }, { "appId": "fbf86c7e", "reviewerId": "692dfc0e", "scores": [4, 4, 3, 3, 3, 3], "total": 20, "isMissing": false }, { "appId": "fbf86c7e", "reviewerId": "aa7e75e4", "scores": [5, 4, 5, 4, 4, 2], "total": 24, "isMissing": false }, { "appId": "fbf86c7e", "reviewerId": "53cf40d8", "scores": null, "total": null, "isMissing": true }, { "appId": "d21b4eb8", "reviewerId": "692dfc0e", "scores": [5, 5, 5, 4, 4, 5], "total": 28, "isMissing": false }, { "appId": "d21b4eb8", "reviewerId": "aa7e75e4", "scores": [5, 5, 5, 5, 4, 4], "total": 28, "isMissing": false }, { "appId": "d21b4eb8", "reviewerId": "2ecb4a0f", "scores": [4, 4, 5, 4, 4, 3], "total": 24, "isMissing": false }, { "appId": "b2a50bf0", "reviewerId": "692dfc0e", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "b2a50bf0", "reviewerId": "aa7e75e4", "scores": [3, 4, 3, 3, 4, 2], "total": 19, "isMissing": false }, { "appId": "b2a50bf0", "reviewerId": "e724c212", "scores": [4, 3, 4, 3, 4, 3], "total": 21, "isMissing": false }, { "appId": "f07a920d", "reviewerId": "d6b872de", "scores": [4, 4, 4, 3, 4, 2], "total": 21, "isMissing": false }, { "appId": "f07a920d", "reviewerId": "aa7e75e4", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "f07a920d", "reviewerId": "4c7bc92e", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "543b421f", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "543b421f", "reviewerId": "4c7bc92e", "scores": [4, 3, 3, 3, 2, 2], "total": 17, "isMissing": false }, { "appId": "543b421f", "reviewerId": "53cf40d8", "scores": [5, 5, 4, 5, 4, 4], "total": 27, "isMissing": false }, { "appId": "2e466236", "reviewerId": "692dfc0e", "scores": [2, 2, 3, 2, 2, 2], "total": 13, "isMissing": false }, { "appId": "2e466236", "reviewerId": "aa7e75e4", "scores": [2, 2, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "2e466236", "reviewerId": "e724c212", "scores": [1, 2, 2, 2, 2, 1], "total": 10, "isMissing": false }, { "appId": "b75ecfb3", "reviewerId": "692dfc0e", "scores": [2, 2, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "b75ecfb3", "reviewerId": "aa7e75e4", "scores": [2, 2, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "b75ecfb3", "reviewerId": "53cf40d8", "scores": [5, 5, 5, 5, 3, 3], "total": 26, "isMissing": false }, { "appId": "02168aa5", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "02168aa5", "reviewerId": "2ecb4a0f", "scores": [2, 3, 3, 3, 3, 3], "total": 17, "isMissing": false }, { "appId": "02168aa5", "reviewerId": "53cf40d8", "scores": null, "total": null, "isMissing": true }, { "appId": "2818bf4b", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "2818bf4b", "reviewerId": "4c7bc92e", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "2818bf4b", "reviewerId": "e724c212", "scores": [2, 1, 1, 2, 1, 1], "total": 8, "isMissing": false }, { "appId": "b4c7aa87", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "b4c7aa87", "reviewerId": "6a7e558e", "scores": [3, 3, 4, 4, 2, 2], "total": 18, "isMissing": false }, { "appId": "b4c7aa87", "reviewerId": "4c7bc92e", "scores": [3, 4, 4, 4, 3, 3], "total": 21, "isMissing": false }, { "appId": "1221e153", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 5, 5, 4], "total": 28, "isMissing": false }, { "appId": "1221e153", "reviewerId": "6a7e558e", "scores": [3, 4, 4, 4, 4, 4], "total": 23, "isMissing": false }, { "appId": "1221e153", "reviewerId": "4c7bc92e", "scores": [3, 4, 4, 3, 4, 3], "total": 21, "isMissing": false }, { "appId": "6e158e5b", "reviewerId": "692dfc0e", "scores": [4, 4, 4, 4, 3, 4], "total": 23, "isMissing": false }, { "appId": "6e158e5b", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "6e158e5b", "reviewerId": "53cf40d8", "scores": [4, 3, 4, 4, 5, 4], "total": 24, "isMissing": false }, { "appId": "68a5935b", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "68a5935b", "reviewerId": "53cf40d8", "scores": [2, 2, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "68a5935b", "reviewerId": "e724c212", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "8ac1de0e", "reviewerId": "aa7e75e4", "scores": [2, 2, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "8ac1de0e", "reviewerId": "4c7bc92e", "scores": [3, 2, 2, 2, 2, 2], "total": 13, "isMissing": false }, { "appId": "8ac1de0e", "reviewerId": "e724c212", "scores": [1, 1, 1, 2, 1, 2], "total": 8, "isMissing": false }, { "appId": "c8e3e01e", "reviewerId": "692dfc0e", "scores": [4, 3, 4, 3, 4, 3], "total": 21, "isMissing": false }, { "appId": "c8e3e01e", "reviewerId": "aa7e75e4", "scores": [2, 2, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "c8e3e01e", "reviewerId": "53cf40d8", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "a901c1cf", "reviewerId": "692dfc0e", "scores": [4, 4, 4, 4, 4, 3], "total": 23, "isMissing": false }, { "appId": "a901c1cf", "reviewerId": "aa7e75e4", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "a901c1cf", "reviewerId": "6a7e558e", "scores": [4, 4, 4, 4, 4, 3], "total": 23, "isMissing": false }, { "appId": "831b48cc", "reviewerId": "b2f71d47", "scores": [2, 2, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "831b48cc", "reviewerId": "aa7e75e4", "scores": [2, 2, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "831b48cc", "reviewerId": "4c7bc92e", "scores": [4, 3, 2, 2, 2, 2], "total": 15, "isMissing": false }, { "appId": "d152ec6a", "reviewerId": "aa7e75e4", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "d152ec6a", "reviewerId": "2ecb4a0f", "scores": [5, 4, 4, 5, 4, 4], "total": 26, "isMissing": false }, { "appId": "d152ec6a", "reviewerId": "53cf40d8", "scores": null, "total": null, "isMissing": true }, { "appId": "c93d3c45", "reviewerId": "692dfc0e", "scores": [2, 2, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "c93d3c45", "reviewerId": "aa7e75e4", "scores": [2, 2, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "c93d3c45", "reviewerId": "2ecb4a0f", "scores": [3, 2, 2, 2, 2, 2], "total": 13, "isMissing": false }, { "appId": "d0cb97f5", "reviewerId": "aa7e75e4", "scores": [5, 5, 5, 4, 4, 4], "total": 27, "isMissing": false }, { "appId": "d0cb97f5", "reviewerId": "6a7e558e", "scores": [4, 4, 4, 4, 5, 5], "total": 26, "isMissing": false }, { "appId": "d0cb97f5", "reviewerId": "e724c212", "scores": [5, 4, 5, 4, 4, 4], "total": 26, "isMissing": false }, { "appId": "b5a93bf7", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 5, 5, 5], "total": 29, "isMissing": false }, { "appId": "b5a93bf7", "reviewerId": "4c7bc92e", "scores": [3, 5, 5, 5, 4, 5], "total": 27, "isMissing": false }, { "appId": "b5a93bf7", "reviewerId": "53cf40d8", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "622ffff3", "reviewerId": "692dfc0e", "scores": [4, 4, 4, 3, 4, 4], "total": 23, "isMissing": false }, { "appId": "622ffff3", "reviewerId": "b2f71d47", "scores": [5, 5, 5, 5, 4, 5], "total": 29, "isMissing": false }, { "appId": "622ffff3", "reviewerId": "aa7e75e4", "scores": [4, 4, 4, 4, 3, 4], "total": 23, "isMissing": false }, { "appId": "5d92e057", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "5d92e057", "reviewerId": "6a7e558e", "scores": [3, 4, 4, 4, 3, 2], "total": 20, "isMissing": false }, { "appId": "5d92e057", "reviewerId": "53cf40d8", "scores": [3, 4, 5, 5, 3, 5], "total": 25, "isMissing": false }, { "appId": "aa628f47", "reviewerId": "6a7e558e", "scores": [2, 1, 1, 1, 1, 1], "total": 7, "isMissing": false }, { "appId": "aa628f47", "reviewerId": "53cf40d8", "scores": [5, 5, 4, 4, 3, 2], "total": 23, "isMissing": false }, { "appId": "aa628f47", "reviewerId": "e724c212", "scores": [2, 1, 1, 1, 1, 1], "total": 7, "isMissing": false }, { "appId": "042ebd3f", "reviewerId": "692dfc0e", "scores": [4, 4, 5, 4, 4, 4], "total": 25, "isMissing": false }, { "appId": "042ebd3f", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "042ebd3f", "reviewerId": "4c7bc92e", "scores": [3, 4, 3, 3, 4, 3], "total": 20, "isMissing": false }, { "appId": "03072f87", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 5, 4, 4], "total": 27, "isMissing": false }, { "appId": "03072f87", "reviewerId": "4c7bc92e", "scores": [4, 5, 5, 5, 5, 5], "total": 29, "isMissing": false }, { "appId": "03072f87", "reviewerId": "e724c212", "scores": [3, 5, 5, 4, 4, 5], "total": 26, "isMissing": false }, { "appId": "e0876f8e", "reviewerId": "692dfc0e", "scores": [5, 5, 5, 4, 4, 4], "total": 27, "isMissing": false }, { "appId": "e0876f8e", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 4, 4, 4], "total": 26, "isMissing": false }, { "appId": "e0876f8e", "reviewerId": "6a7e558e", "scores": [5, 5, 5, 4, 3, 2], "total": 24, "isMissing": false }, { "appId": "d217208a", "reviewerId": "aa7e75e4", "scores": [3, 3, 4, 4, 2, 2], "total": 18, "isMissing": false }, { "appId": "d217208a", "reviewerId": "2ecb4a0f", "scores": [3, 4, 4, 4, 4, 5], "total": 24, "isMissing": false }, { "appId": "d217208a", "reviewerId": "6a7e558e", "scores": [3, 4, 5, 3, 3, 4], "total": 22, "isMissing": false }, { "appId": "8327bbb8", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "8327bbb8", "reviewerId": "2ecb4a0f", "scores": [4, 2, 3, 3, 2, 2], "total": 16, "isMissing": false }, { "appId": "8327bbb8", "reviewerId": "53cf40d8", "scores": [5, 4, 4, 5, 4, 5], "total": 27, "isMissing": false }, { "appId": "43711516", "reviewerId": "692dfc0e", "scores": [5, 5, 5, 4, 5, 5], "total": 29, "isMissing": false }, { "appId": "43711516", "reviewerId": "aa7e75e4", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "43711516", "reviewerId": "6a7e558e", "scores": [4, 4, 5, 5, 5, 4], "total": 27, "isMissing": false }, { "appId": "11d6fbe9", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "11d6fbe9", "reviewerId": "6a7e558e", "scores": [1, 1, 1, 1, 1, 3], "total": 8, "isMissing": false }, { "appId": "11d6fbe9", "reviewerId": "53cf40d8", "scores": [5, 2, 2, 2, 2, 2], "total": 15, "isMissing": false }, { "appId": "495bf933", "reviewerId": "b2f71d47", "scores": [2, 2, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "495bf933", "reviewerId": "aa7e75e4", "scores": [2, 2, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "495bf933", "reviewerId": "4c7bc92e", "scores": [3, 3, 2, 2, 2, 2], "total": 14, "isMissing": false }, { "appId": "69b19479", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 4, 5, 5], "total": 28, "isMissing": false }, { "appId": "69b19479", "reviewerId": "2ecb4a0f", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "69b19479", "reviewerId": "53cf40d8", "scores": null, "total": null, "isMissing": true }, { "appId": "0c63b5f0", "reviewerId": "692dfc0e", "scores": [2, 2, 1, 2, 2, 2], "total": 11, "isMissing": false }, { "appId": "0c63b5f0", "reviewerId": "b2f71d47", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "0c63b5f0", "reviewerId": "aa7e75e4", "scores": [2, 2, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "41877838", "reviewerId": "692dfc0e", "scores": [2, 1, 1, 2, 2, 1], "total": 9, "isMissing": false }, { "appId": "41877838", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "41877838", "reviewerId": "53cf40d8", "scores": [5, 4, 2, 3, 4, 3], "total": 21, "isMissing": false }, { "appId": "d88c1a7e", "reviewerId": "b2f71d47", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "d88c1a7e", "reviewerId": "aa7e75e4", "scores": [3, 4, 4, 5, 4, 4], "total": 24, "isMissing": false }, { "appId": "d88c1a7e", "reviewerId": "4c7bc92e", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "c380fd92", "reviewerId": "692dfc0e", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "c380fd92", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "c380fd92", "reviewerId": "2ecb4a0f", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "111b4700", "reviewerId": "692dfc0e", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "111b4700", "reviewerId": "aa7e75e4", "scores": [2, 2, 3, 3, 2, 3], "total": 15, "isMissing": false }, { "appId": "111b4700", "reviewerId": "53cf40d8", "scores": null, "total": null, "isMissing": true }, { "appId": "4965d740", "reviewerId": "692dfc0e", "scores": [4, 4, 4, 4, 4, 3], "total": 23, "isMissing": false }, { "appId": "4965d740", "reviewerId": "aa7e75e4", "scores": [4, 5, 2, 3, 5, 4], "total": 23, "isMissing": false }, { "appId": "4965d740", "reviewerId": "53cf40d8", "scores": [5, 5, 4, 5, 5, 5], "total": 29, "isMissing": false }, { "appId": "22048e90", "reviewerId": "692dfc0e", "scores": [4, 4, 4, 5, 5, 5], "total": 27, "isMissing": false }, { "appId": "22048e90", "reviewerId": "aa7e75e4", "scores": [3, 3, 4, 5, 4, 4], "total": 23, "isMissing": false }, { "appId": "22048e90", "reviewerId": "53cf40d8", "scores": null, "total": null, "isMissing": true }, { "appId": "0bb2e984", "reviewerId": "692dfc0e", "scores": [4, 4, 4, 4, 3, 4], "total": 23, "isMissing": false }, { "appId": "0bb2e984", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "0bb2e984", "reviewerId": "6a7e558e", "scores": [3, 3, 4, 3, 3, 4], "total": 20, "isMissing": false }, { "appId": "2dd6e14c", "reviewerId": "692dfc0e", "scores": [4, 4, 5, 4, 4, 4], "total": 25, "isMissing": false }, { "appId": "2dd6e14c", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 5, 4, 5], "total": 28, "isMissing": false }, { "appId": "2dd6e14c", "reviewerId": "e724c212", "scores": [5, 4, 5, 4, 4, 5], "total": 27, "isMissing": false }, { "appId": "5bab0f14", "reviewerId": "aa7e75e4", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "5bab0f14", "reviewerId": "2ecb4a0f", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "5bab0f14", "reviewerId": "53cf40d8", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "bf018fa3", "reviewerId": "692dfc0e", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "bf018fa3", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "bf018fa3", "reviewerId": "53cf40d8", "scores": null, "total": null, "isMissing": true }, { "appId": "376fc2fd", "reviewerId": "692dfc0e", "scores": [2, 2, 3, 2, 2, 2], "total": 13, "isMissing": false }, { "appId": "376fc2fd", "reviewerId": "aa7e75e4", "scores": [2, 2, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "376fc2fd", "reviewerId": "2ecb4a0f", "scores": [4, 3, 3, 3, 3, 4], "total": 20, "isMissing": false }, { "appId": "29ebeafe", "reviewerId": "692dfc0e", "scores": [3, 3, 2, 3, 3, 2], "total": 16, "isMissing": false }, { "appId": "29ebeafe", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "29ebeafe", "reviewerId": "4c7bc92e", "scores": [4, 3, 2, 3, 3, 2], "total": 17, "isMissing": false }, { "appId": "9bc76841", "reviewerId": "692dfc0e", "scores": [4, 5, 5, 4, 5, 5], "total": 28, "isMissing": false }, { "appId": "9bc76841", "reviewerId": "aa7e75e4", "scores": [4, 4, 5, 5, 5, 5], "total": 28, "isMissing": false }, { "appId": "9bc76841", "reviewerId": "53cf40d8", "scores": [5, 5, 5, 5, 5, 5], "total": 30, "isMissing": false }, { "appId": "6049b72f", "reviewerId": "692dfc0e", "scores": [1, 2, 1, 2, 1, 1], "total": 8, "isMissing": false }, { "appId": "6049b72f", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "6049b72f", "reviewerId": "4c7bc92e", "scores": [4, 2, 2, 2, 2, 2], "total": 14, "isMissing": false }, { "appId": "96e820f3", "reviewerId": "692dfc0e", "scores": [5, 5, 4, 5, 4, 4], "total": 27, "isMissing": false }, { "appId": "96e820f3", "reviewerId": "b2f71d47", "scores": [5, 3, 3, 4, 2, 3], "total": 20, "isMissing": false }, { "appId": "96e820f3", "reviewerId": "aa7e75e4", "scores": [4, 4, 5, 5, 5, 4], "total": 27, "isMissing": false }, { "appId": "3e9d4a19", "reviewerId": "692dfc0e", "scores": [2, 2, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "3e9d4a19", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "3e9d4a19", "reviewerId": "53cf40d8", "scores": [5, 5, 5, 4, 4, 4], "total": 27, "isMissing": false }, { "appId": "ec1e750e", "reviewerId": "aa7e75e4", "scores": [4, 5, 5, 5, 5, 4], "total": 28, "isMissing": false }, { "appId": "ec1e750e", "reviewerId": "2ecb4a0f", "scores": [4, 3, 3, 4, 3, 3], "total": 20, "isMissing": false }, { "appId": "ec1e750e", "reviewerId": "4c7bc92e", "scores": [5, 5, 4, 4, 5, 5], "total": 28, "isMissing": false }, { "appId": "49d33dbb", "reviewerId": "692dfc0e", "scores": [2, 2, 2, 2, 2, 1], "total": 11, "isMissing": false }, { "appId": "49d33dbb", "reviewerId": "b2f71d47", "scores": [3, 1, 1, 1, 1, 1], "total": 8, "isMissing": false }, { "appId": "49d33dbb", "reviewerId": "aa7e75e4", "scores": [2, 2, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "515b6d12", "reviewerId": "aa7e75e4", "scores": [2, 2, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "515b6d12", "reviewerId": "2ecb4a0f", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "515b6d12", "reviewerId": "53cf40d8", "scores": [4, 5, 5, 3, 3, 3], "total": 23, "isMissing": false }, { "appId": "6f15ff86", "reviewerId": "692dfc0e", "scores": [3, 4, 4, 4, 4, 4], "total": 23, "isMissing": false }, { "appId": "6f15ff86", "reviewerId": "aa7e75e4", "scores": [4, 4, 4, 4, 4, 4], "total": 24, "isMissing": false }, { "appId": "6f15ff86", "reviewerId": "53cf40d8", "scores": [3, 5, 5, 5, 5, 5], "total": 28, "isMissing": false }, { "appId": "404b5698", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "404b5698", "reviewerId": "6a7e558e", "scores": [2, 2, 2, 2, 1, 1], "total": 10, "isMissing": false }, { "appId": "404b5698", "reviewerId": "e724c212", "scores": [1, 1, 1, 1, 2, 1], "total": 7, "isMissing": false }, { "appId": "6d555901", "reviewerId": "aa7e75e4", "scores": [4, 4, 3, 4, 3, 4], "total": 22, "isMissing": false }, { "appId": "6d555901", "reviewerId": "4c7bc92e", "scores": [3, 3, 4, 3, 3, 4], "total": 20, "isMissing": false }, { "appId": "6d555901", "reviewerId": "53cf40d8", "scores": [5, 5, 5, 4, 5, 5], "total": 29, "isMissing": false }, { "appId": "33c7c2b3", "reviewerId": "aa7e75e4", "scores": [3, 3, 3, 3, 3, 3], "total": 18, "isMissing": false }, { "appId": "33c7c2b3", "reviewerId": "4c7bc92e", "scores": [4, 3, 3, 3, 2, 3], "total": 18, "isMissing": false }, { "appId": "33c7c2b3", "reviewerId": "e724c212", "scores": [4, 4, 4, 4, 2, 3], "total": 21, "isMissing": false }, { "appId": "f34c98c4", "reviewerId": "692dfc0e", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "f34c98c4", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "f34c98c4", "reviewerId": "53cf40d8", "scores": null, "total": null, "isMissing": true }, { "appId": "e48ac770", "reviewerId": "aa7e75e4", "scores": [1, 1, 1, 1, 1, 1], "total": 6, "isMissing": false }, { "appId": "e48ac770", "reviewerId": "2ecb4a0f", "scores": [3, 2, 3, 2, 3, 2], "total": 15, "isMissing": false }, { "appId": "e48ac770", "reviewerId": "53cf40d8", "scores": [4, 3, 5, 5, 4, 5], "total": 26, "isMissing": false }, { "appId": "e07afc88", "reviewerId": "aa7e75e4", "scores": [4, 4, 4, 5, 4, 5], "total": 26, "isMissing": false }, { "appId": "e07afc88", "reviewerId": "2ecb4a0f", "scores": [1, 1, 1, 1, 5, 1], "total": 10, "isMissing": false }, { "appId": "e07afc88", "reviewerId": "e724c212", "scores": [4, 5, 5, 5, 4, 5], "total": 28, "isMissing": false }, { "appId": "e05f5473", "reviewerId": "aa7e75e4", "scores": [2, 2, 2, 2, 2, 2], "total": 12, "isMissing": false }, { "appId": "e05f5473", "reviewerId": "6a7e558e", "scores": [5, 3, 3, 3, 4, 4], "total": 22, "isMissing": false }, { "appId": "e05f5473", "reviewerId": "4c7bc92e", "scores": [5, 3, 3, 3, 5, 2], "total": 21, "isMissing": false }];
+
+        let applications = {};
+        let reviewerStats = {};
+        let currentCutoff = 27;
+        let currentFilter = 'all';
+        let currentSort = { field: 'avg', dir: 'desc' };
+        let currentPage = 1;
+        const pageSize = 20;
+        let searchTerm = '';
+        let useBiasAdjustment = false;
+        let globalAvg = 0;
+        const categoryNames = ['Academic', 'Integrity', 'Resilience', 'Social', 'Curiosity', 'Values'];
+
+        window.addEventListener('load', () => processData(rawReviewData));
+
+        function toggleBiasAdjustment() {
+            useBiasAdjustment = !useBiasAdjustment;
+            document.getElementById('biasToggle').classList.toggle('active', useBiasAdjustment);
+            document.getElementById('biasStatus').textContent = useBiasAdjustment ? 'ON' : 'OFF';
+            document.getElementById('biasStatus').style.color = useBiasAdjustment ? 'var(--success)' : 'var(--text-secondary)';
+            document.getElementById('histogramLabel').textContent = useBiasAdjustment ? '(Adjusted)' : '';
+            recalculateWithBias();
+            updateDashboard();
+        }
+
+        function processData(data) {
+            applications = {};
+            reviewerStats = {};
+
+            data.forEach(review => {
+                const appId = review.appId;
+                const reviewerId = review.reviewerId;
+
+                if (!applications[appId]) {
+                    applications[appId] = { id: appId, reviews: [], hasMissing: false, categoryScores: [0, 0, 0, 0, 0, 0], categoryCounts: [0, 0, 0, 0, 0, 0] };
+                }
+
+                if (review.total !== null) {
+                    applications[appId].reviews.push({ reviewerId, totalScore: review.total, scores: review.scores });
+                    if (review.scores) {
+                        review.scores.forEach((s, i) => {
+                            if (s !== null) {
+                                applications[appId].categoryScores[i] += s;
+                                applications[appId].categoryCounts[i]++;
+                            }
+                        });
+                    }
+                    if (!reviewerStats[reviewerId]) reviewerStats[reviewerId] = { scores: [], count: 0, min: 30, max: 0 };
+                    reviewerStats[reviewerId].scores.push(review.total);
+                    reviewerStats[reviewerId].count++;
+                    reviewerStats[reviewerId].min = Math.min(reviewerStats[reviewerId].min, review.total);
+                    reviewerStats[reviewerId].max = Math.max(reviewerStats[reviewerId].max, review.total);
+                } else if (review.isMissing) {
+                    applications[appId].hasMissing = true;
+                }
+            });
+
+            const allScores = Object.values(reviewerStats).flatMap(r => r.scores);
+            globalAvg = allScores.reduce((a, b) => a + b, 0) / allScores.length;
+
+            Object.entries(reviewerStats).forEach(([id, stats]) => {
+                stats.avgGiven = stats.scores.reduce((a, b) => a + b, 0) / stats.scores.length;
+                stats.stdDev = Math.sqrt(calculateVariance(stats.scores));
+                stats.bias = stats.avgGiven - globalAvg;
+            });
+
+            Object.values(applications).forEach(app => {
+                app.categoryAvgs = app.categoryScores.map((s, i) => app.categoryCounts[i] > 0 ? s / app.categoryCounts[i] : 0);
+            });
+
+            recalculateWithBias();
+            updateDashboard();
+        }
+
+        function recalculateWithBias() {
+            Object.values(applications).forEach(app => {
+                if (app.reviews.length > 0) {
+                    const rawScores = app.reviews.map(r => r.totalScore);
+                    app.avgScore = rawScores.reduce((a, b) => a + b, 0) / rawScores.length;
+                    app.maxScore = Math.max(...rawScores);
+                    app.minScore = Math.min(...rawScores);
+                    app.variance = calculateVariance(rawScores);
+                    app.stdDev = Math.sqrt(app.variance);
+
+                    if (useBiasAdjustment) {
+                        const adjusted = app.reviews.map(r => {
+                            const rev = reviewerStats[r.reviewerId];
+                            return rev ? r.totalScore - rev.bias : r.totalScore;
+                        });
+                        app.adjustedScore = adjusted.reduce((a, b) => a + b, 0) / adjusted.length;
+                    } else {
+                        app.adjustedScore = app.avgScore;
+                    }
+                    app.boostedAboveCutoff = useBiasAdjustment && app.avgScore < currentCutoff && app.adjustedScore >= currentCutoff;
+                } else {
+                    app.avgScore = app.adjustedScore = app.maxScore = app.minScore = app.variance = app.stdDev = 0;
+                    app.boostedAboveCutoff = false;
+                }
+            });
+        }
+
+        function calculateVariance(arr) {
+            if (arr.length < 2) return 0;
+            const mean = arr.reduce((a, b) => a + b, 0) / arr.length;
+            return arr.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / arr.length;
+        }
+
+        function updateDashboard() {
+            updateStats();
+            updateHistogram();
+            updateCutoffInfo();
+            updateInclusivity();
+            updateReviewerTable();
+            updateApplicationsTable();
+            updateCategoryBars();
+            updateScatterPlot();
+            updateBoxPlots();
+            updateCumulativeChart();
+            updateComparisonPanel();
+            updateRadarChart();
+        }
+
+        function updateStats() {
+            const apps = Object.values(applications);
+            const reviewed = apps.filter(a => a.reviews.length > 0);
+            const scores = reviewed.map(a => useBiasAdjustment ? a.adjustedScore : a.avgScore).sort((a, b) => a - b);
+
+            document.getElementById('totalApps').textContent = apps.length;
+            document.getElementById('fullyReviewed').textContent = apps.filter(a => a.reviews.length >= 3).length;
+            document.getElementById('partiallyReviewed').textContent = apps.filter(a => a.reviews.length > 0 && a.reviews.length < 3).length;
+            document.getElementById('missingReviews').textContent = apps.filter(a => a.hasMissing || a.reviews.length === 0).length;
+            document.getElementById('avgScore').textContent = scores.length > 0 ? (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1) : 0;
+            document.getElementById('stdDev').textContent = scores.length > 0 ? Math.sqrt(calculateVariance(scores)).toFixed(2) : 0;
+            document.getElementById('medianScore').textContent = scores.length > 0 ? scores[Math.floor(scores.length / 2)].toFixed(1) : 0;
+            document.getElementById('reviewerCount').textContent = Object.keys(reviewerStats).length;
+        }
+
+        function updateHistogram() {
+            const container = document.getElementById('histogram');
+            container.innerHTML = '';
+            const bins = {}; for (let i = 15; i <= 30; i++) bins[i] = 0;
+            Object.values(applications).forEach(app => {
+                if (app.reviews.length > 0) {
+                    const score = useBiasAdjustment ? app.adjustedScore : app.avgScore;
+                    bins[Math.min(30, Math.max(15, Math.floor(score)))]++;
+                }
+            });
+            const maxCount = Math.max(...Object.values(bins), 1);
+            for (let i = 15; i <= 30; i++) {
+                const bar = document.createElement('div');
+                bar.className = 'histogram-bar' + (i < currentCutoff ? ' below-cutoff' : '');
+                bar.style.height = `${(bins[i] / maxCount) * 100}%`;
+                bar.innerHTML = `<span class="count">${bins[i]}</span>`;
+                bar.title = `Score ${i}: ${bins[i]} apps`;
+                container.appendChild(bar);
+            }
+        }
+
+        function updateCutoffInfo() {
+            const apps = Object.values(applications);
+            const score = useBiasAdjustment ? 'adjustedScore' : 'avgScore';
+            const selected = apps.filter(a => a[score] >= currentCutoff && a.reviews.length > 0);
+            document.getElementById('selectedCount').textContent = selected.length;
+            const info = document.getElementById('selectionInfo');
+            const msg = document.getElementById('targetMessage');
+            if (selected.length >= 50) { info.className = 'selection-info'; msg.textContent = '✓ Target met!'; }
+            else { info.className = 'selection-info warning'; msg.textContent = `⚠ ${50 - selected.length} more needed`; }
+        }
+
+        function updateInclusivity() {
+            const apps = Object.values(applications);
+            const sf = useBiasAdjustment ? 'adjustedScore' : 'avgScore';
+            const highSingle = apps.filter(a => a[sf] < currentCutoff && a.maxScore >= 27 && a.reviews.length > 0);
+            const borderline = apps.filter(a => a[sf] >= currentCutoff - 1.5 && a[sf] < currentCutoff && a.reviews.length > 0);
+            const highVar = apps.filter(a => a.stdDev > 3 && a.reviews.length > 1);
+            const boosted = apps.filter(a => a.boostedAboveCutoff);
+            const selectedIds = new Set(apps.filter(a => a[sf] >= currentCutoff).map(a => a.id));
+            const additional = new Set([...highSingle.map(a => a.id), ...borderline.map(a => a.id)].filter(id => !selectedIds.has(id)));
+
+            document.getElementById('highSingleCount').textContent = highSingle.length;
+            document.getElementById('borderlineCount').textContent = borderline.length;
+            document.getElementById('highVarianceCount').textContent = highVar.length;
+            document.getElementById('boostedCount').textContent = boosted.length;
+            document.getElementById('additionalInterviews').textContent = additional.size;
+            document.getElementById('filterAll').textContent = apps.filter(a => a.reviews.length > 0).length;
+            document.getElementById('filterSelected').textContent = apps.filter(a => a[sf] >= currentCutoff && a.reviews.length > 0).length;
+            document.getElementById('filterHighSingle').textContent = highSingle.length;
+            document.getElementById('filterBorderline').textContent = borderline.length;
+            document.getElementById('filterBoosted').textContent = boosted.length;
+            document.getElementById('filterMissing').textContent = apps.filter(a => a.hasMissing || a.reviews.length < 3).length;
+        }
+
+        function updateCategoryBars() {
+            const container = document.getElementById('categoryBars');
+            container.innerHTML = '';
+            const apps = Object.values(applications).filter(a => a.reviews.length > 0);
+            const avgCats = [0, 0, 0, 0, 0, 0];
+            apps.forEach(app => app.categoryAvgs.forEach((v, i) => avgCats[i] += v));
+            avgCats.forEach((v, i) => avgCats[i] = apps.length > 0 ? v / apps.length : 0);
+
+            const colors = ['#6366f1', '#8b5cf6', '#a855f7', '#d946ef', '#ec4899', '#f43f5e'];
+            avgCats.forEach((v, i) => {
+                const bar = document.createElement('div');
+                bar.className = 'category-bar';
+                const height = (v / 5) * 100;
+                bar.innerHTML = `<div class="category-bar-value">${v.toFixed(1)}</div><div class="category-bar-fill" style="height: ${height}%; background: ${colors[i]};"></div><div class="category-bar-label">${categoryNames[i]}</div>`;
+                container.appendChild(bar);
+            });
+        }
+
+        function updateScatterPlot() {
+            const container = document.getElementById('scatterPlot');
+            container.querySelectorAll('.scatter-point').forEach(p => p.remove());
+            const apps = Object.values(applications).filter(a => a.reviews.length > 0);
+            const sf = useBiasAdjustment ? 'adjustedScore' : 'avgScore';
+
+            apps.forEach(app => {
+                const x = ((app.avgScore - 5) / 25) * 90 + 5;
+                const y = 95 - ((app.adjustedScore - 5) / 25) * 90;
+                const point = document.createElement('div');
+                point.className = 'scatter-point' + (app[sf] >= currentCutoff ? ' selected' : ' below');
+                point.style.left = x + '%';
+                point.style.top = y + '%';
+                point.title = `${app.id}: Raw=${app.avgScore.toFixed(1)}, Adj=${app.adjustedScore.toFixed(1)}`;
+                container.appendChild(point);
+            });
+        }
+
+        function updateBoxPlots() {
+            const container = document.getElementById('boxPlots');
+            container.innerHTML = '';
+            const sorted = Object.entries(reviewerStats).sort((a, b) => b[1].count - a[1].count).slice(0, 6);
+
+            sorted.forEach(([id, stats]) => {
+                const box = document.createElement('div');
+                box.className = 'box-plot';
+                const left = ((stats.min - 5) / 25) * 100;
+                const width = ((stats.max - stats.min) / 25) * 100;
+                const median = ((stats.avgGiven - 5) / 25) * 100;
+                box.innerHTML = `<div class="box-whisker" style="left: ${left}%; width: ${width}%;"></div><div class="box-median" style="left: ${median}%;"></div><div class="box-label" style="left: ${median}%;">${id.slice(0, 4)} (${stats.count})</div>`;
+                box.title = `${id}\nReviews: ${stats.count}\nAvg: ${stats.avgGiven.toFixed(1)}\nRange: ${stats.min}-${stats.max}\nBias: ${stats.bias > 0 ? '+' : ''}${stats.bias.toFixed(1)}`;
+                container.appendChild(box);
+            });
+        }
+
+        // Cumulative Distribution Chart
+        function updateCumulativeChart() {
+            const canvas = document.getElementById('cumulativeCanvas');
+            const ctx = canvas.getContext('2d');
+            const container = document.getElementById('cumulativeChart');
+            const cutoffLine = document.getElementById('cumulativeCutoffLine');
+
+            canvas.width = container.offsetWidth;
+            canvas.height = container.offsetHeight;
+
+            const apps = Object.values(applications).filter(a => a.reviews.length > 0);
+            const sf = useBiasAdjustment ? 'adjustedScore' : 'avgScore';
+            const scores = apps.map(a => a[sf]).sort((a, b) => a - b);
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw grid lines
+            ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 4; i++) {
+                const y = (i / 4) * canvas.height;
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+
+            // Draw cumulative curve
+            if (scores.length > 0) {
+                ctx.strokeStyle = '#6366f1';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+
+                for (let score = 15; score <= 30; score += 0.5) {
+                    const count = scores.filter(s => s <= score).length;
+                    const x = ((score - 15) / 15) * canvas.width;
+                    const y = canvas.height - (count / scores.length) * canvas.height;
+
+                    if (score === 15) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+
+                // Fill area under curve
+                ctx.lineTo(canvas.width, canvas.height);
+                ctx.lineTo(0, canvas.height);
+                ctx.closePath();
+                ctx.fillStyle = 'rgba(99, 102, 241, 0.2)';
+                ctx.fill();
+
+                // Draw cutoff highlight area
+                const cutoffX = ((currentCutoff - 15) / 15) * canvas.width;
+                ctx.fillStyle = 'rgba(16, 185, 129, 0.15)';
+                ctx.fillRect(cutoffX, 0, canvas.width - cutoffX, canvas.height);
+            }
+
+            // Position cutoff line
+            const cutoffPercent = ((currentCutoff - 15) / 15) * 100;
+            cutoffLine.style.left = cutoffPercent + '%';
+        }
+
+        // Draggable cutoff line
+        (function setupCumulativeDrag() {
+            const cutoffLine = document.getElementById('cumulativeCutoffLine');
+            const container = document.getElementById('cumulativeChart');
+            let isDragging = false;
+
+            cutoffLine.addEventListener('mousedown', () => isDragging = true);
+            document.addEventListener('mouseup', () => isDragging = false);
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                const rect = container.getBoundingClientRect();
+                const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+                const newCutoff = 15 + (x / rect.width) * 15;
+                currentCutoff = Math.round(newCutoff * 2) / 2; // Round to 0.5
+                document.getElementById('cutoffSlider').value = currentCutoff;
+                document.getElementById('cutoffDisplay').textContent = currentCutoff;
+                document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.toggle('active', parseFloat(btn.dataset.value) === currentCutoff));
+                recalculateWithBias();
+                updateDashboard();
+            });
+        })();
+
+        // Comparison Panel
+        function updateComparisonPanel() {
+            const apps = Object.values(applications).filter(a => a.reviews.length > 0);
+            const sf = useBiasAdjustment ? 'adjustedScore' : 'avgScore';
+            const selected = apps.filter(a => a[sf] >= currentCutoff);
+            const rejected = apps.filter(a => a[sf] < currentCutoff);
+
+            document.getElementById('compSelectedCount').textContent = selected.length;
+            document.getElementById('compRejectedCount').textContent = rejected.length;
+
+            const calcStats = (arr) => {
+                if (arr.length === 0) return { avg: 0, max: 0, min: 0, avgVar: 0, cats: [0, 0, 0, 0, 0, 0] };
+                const avg = arr.reduce((s, a) => s + a[sf], 0) / arr.length;
+                const max = Math.max(...arr.map(a => a[sf]));
+                const min = Math.min(...arr.map(a => a[sf]));
+                const avgVar = arr.reduce((s, a) => s + a.stdDev, 0) / arr.length;
+                const cats = [0, 0, 0, 0, 0, 0];
+                arr.forEach(a => a.categoryAvgs.forEach((v, i) => cats[i] += v));
+                cats.forEach((v, i) => cats[i] = v / arr.length);
+                return { avg, max, min, avgVar, cats };
+            };
+
+            const selStats = calcStats(selected);
+            const rejStats = calcStats(rejected);
+
+            const renderStats = (stats) => `
+                <div class="comparison-stat"><span>Avg Score</span><span>${stats.avg.toFixed(1)}</span></div>
+                <div class="comparison-stat"><span>Score Range</span><span>${stats.min.toFixed(1)} - ${stats.max.toFixed(1)}</span></div>
+                <div class="comparison-stat"><span>Avg Variance</span><span>σ ${stats.avgVar.toFixed(2)}</span></div>
+                <div class="trend-sparkline">${stats.cats.map((v, i) =>
+                `<div class="trend-bar" style="height: ${(v / 5) * 100}%; background: ${['#6366f1', '#8b5cf6', '#a855f7', '#d946ef', '#ec4899', '#f43f5e'][i]};" title="${categoryNames[i]}: ${v.toFixed(1)}"></div>`
+            ).join('')}</div>
+            `;
+
+            document.getElementById('compSelectedStats').innerHTML = renderStats(selStats);
+            document.getElementById('compRejectedStats').innerHTML = renderStats(rejStats);
+        }
+
+        // Radar Chart
+        function updateRadarChart() {
+            const apps = Object.values(applications).filter(a => a.reviews.length > 0);
+            const sf = useBiasAdjustment ? 'adjustedScore' : 'avgScore';
+            const selected = apps.filter(a => a[sf] >= currentCutoff);
+            const rejected = apps.filter(a => a[sf] < currentCutoff);
+
+            const calcAvgCats = (arr) => {
+                if (arr.length === 0) return [0, 0, 0, 0, 0, 0];
+                const cats = [0, 0, 0, 0, 0, 0];
+                arr.forEach(a => a.categoryAvgs.forEach((v, i) => cats[i] += v));
+                return cats.map(v => v / arr.length);
+            };
+
+            const selCats = calcAvgCats(selected);
+            const rejCats = calcAvgCats(rejected);
+
+            const centerX = 130, centerY = 130, radius = 100;
+            const angleStep = (Math.PI * 2) / 6;
+
+            // Draw grid
+            const gridHtml = [1, 2, 3, 4, 5].map(level => {
+                const points = [];
+                for (let i = 0; i < 6; i++) {
+                    const angle = i * angleStep - Math.PI / 2;
+                    const x = centerX + (level / 5) * radius * Math.cos(angle);
+                    const y = centerY + (level / 5) * radius * Math.sin(angle);
+                    points.push(`${x},${y}`);
+                }
+                return `<polygon points="${points.join(' ')}" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>`;
+            }).join('');
+            document.getElementById('radarGrid').innerHTML = gridHtml;
+
+            // Draw axes
+            const axesHtml = categoryNames.map((_, i) => {
+                const angle = i * angleStep - Math.PI / 2;
+                const x = centerX + radius * Math.cos(angle);
+                const y = centerY + radius * Math.sin(angle);
+                return `<line x1="${centerX}" y1="${centerY}" x2="${x}" y2="${y}" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>`;
+            }).join('');
+            document.getElementById('radarAxes').innerHTML = axesHtml;
+
+            // Draw labels
+            const labelsHtml = categoryNames.map((name, i) => {
+                const angle = i * angleStep - Math.PI / 2;
+                const x = centerX + (radius + 20) * Math.cos(angle);
+                const y = centerY + (radius + 20) * Math.sin(angle);
+                return `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="middle" fill="var(--text-secondary)" font-size="10">${name.slice(0, 4)}</text>`;
+            }).join('');
+            document.getElementById('radarLabels').innerHTML = labelsHtml;
+
+            // Draw polygons
+            const toPoints = (cats) => cats.map((v, i) => {
+                const angle = i * angleStep - Math.PI / 2;
+                const x = centerX + (v / 5) * radius * Math.cos(angle);
+                const y = centerY + (v / 5) * radius * Math.sin(angle);
+                return `${x},${y}`;
+            }).join(' ');
+
+            document.getElementById('radarPolygon').setAttribute('points', toPoints(selCats));
+            document.getElementById('radarPolygonRejected').setAttribute('points', toPoints(rejCats));
+
+            // Draw points for selected
+            const pointsHtml = selCats.map((v, i) => {
+                const angle = i * angleStep - Math.PI / 2;
+                const x = centerX + (v / 5) * radius * Math.cos(angle);
+                const y = centerY + (v / 5) * radius * Math.sin(angle);
+                return `<circle cx="${x}" cy="${y}" r="4" fill="var(--accent-primary)" class="radar-point"><title>${categoryNames[i]}: ${v.toFixed(2)}</title></circle>`;
+            }).join('');
+            document.getElementById('radarPoints').innerHTML = pointsHtml;
+        }
+
+        // Interactive inclusivity filter
+        function setFilterFromInclusivity(filterType) {
+            document.querySelectorAll('.inclusivity-item').forEach(item => item.classList.remove('active'));
+            document.querySelector(`.inclusivity-item[data-filter="${filterType}"]`).classList.add('active');
+
+            if (filterType === 'highVariance') {
+                currentFilter = 'all';
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                document.querySelector('.filter-btn[data-filter="all"]').classList.add('active');
+                // Custom filter for high variance
+                const apps = Object.values(applications).filter(a => a.stdDev > 3 && a.reviews.length > 1);
+                highlightApps(apps.map(a => a.id));
+            } else if (filterType === 'additional') {
+                currentFilter = 'all';
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                document.querySelector('.filter-btn[data-filter="all"]').classList.add('active');
+                const sf = useBiasAdjustment ? 'adjustedScore' : 'avgScore';
+                const apps = Object.values(applications);
+                const selectedIds = new Set(apps.filter(a => a[sf] >= currentCutoff).map(a => a.id));
+                const highSingle = apps.filter(a => a[sf] < currentCutoff && a.maxScore >= 27 && a.reviews.length > 0);
+                const borderline = apps.filter(a => a[sf] >= currentCutoff - 1.5 && a[sf] < currentCutoff && a.reviews.length > 0);
+                const additional = [...highSingle.map(a => a.id), ...borderline.map(a => a.id)].filter(id => !selectedIds.has(id));
+                highlightApps([...new Set(additional)]);
+            } else {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                const btn = document.querySelector(`.filter-btn[data-filter="${filterType}"]`);
+                if (btn) {
+                    btn.classList.add('active');
+                    currentFilter = filterType;
+                }
+            }
+            currentPage = 1;
+            updateApplicationsTable();
+            scrollToElement('applicationsTableBody');
+        }
+
+        function highlightApps(appIds) {
+            setTimeout(() => {
+                document.querySelectorAll('.app-row').forEach(row => {
+                    if (appIds.includes(row.dataset.id)) {
+                        row.style.background = 'rgba(99, 102, 241, 0.2)';
+                    }
+                });
+            }, 100);
+        }
+
+        function scrollToElement(id) {
+            document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function updateReviewerTable() {
+            const tbody = document.getElementById('reviewerTableBody');
+            tbody.innerHTML = '';
+            Object.entries(reviewerStats).sort((a, b) => b[1].count - a[1].count).forEach(([id, stats]) => {
+                let tendency = 'Neutral', cls = 'score-medium';
+                if (stats.bias > 2) { tendency = 'Lenient'; cls = 'score-high'; }
+                else if (stats.bias < -2) { tendency = 'Strict'; cls = 'score-low'; }
+                const bias = stats.bias > 0 ? `+${stats.bias.toFixed(1)}` : stats.bias.toFixed(1);
+                tbody.innerHTML += `<tr><td><code>${id}</code></td><td>${stats.count}</td><td>${stats.avgGiven.toFixed(1)}</td><td>${bias}</td><td><span class="score-badge ${cls}">${tendency}</span></td></tr>`;
+            });
+        }
+
+        function getFilteredApps() {
+            let apps = Object.values(applications).filter(a => a.reviews.length > 0 || a.hasMissing);
+            const sf = useBiasAdjustment ? 'adjustedScore' : 'avgScore';
+            if (searchTerm) apps = apps.filter(a => a.id.toLowerCase().includes(searchTerm.toLowerCase()));
+            switch (currentFilter) {
+                case 'selected': apps = apps.filter(a => a[sf] >= currentCutoff && a.reviews.length > 0); break;
+                case 'highSingle': apps = apps.filter(a => a[sf] < currentCutoff && a.maxScore >= 27 && a.reviews.length > 0); break;
+                case 'borderline': apps = apps.filter(a => a[sf] >= currentCutoff - 1.5 && a[sf] < currentCutoff && a.reviews.length > 0); break;
+                case 'boosted': apps = apps.filter(a => a.boostedAboveCutoff); break;
+                case 'missing': apps = apps.filter(a => a.hasMissing || a.reviews.length < 3); break;
+            }
+            apps.sort((a, b) => {
+                let aV, bV;
+                switch (currentSort.field) {
+                    case 'id': aV = a.id; bV = b.id; break;
+                    case 'avg': aV = a.avgScore; bV = b.avgScore; break;
+                    case 'adjusted': aV = a.adjustedScore; bV = b.adjustedScore; break;
+                    case 'max': aV = a.maxScore; bV = b.maxScore; break;
+                    case 'min': aV = a.minScore; bV = b.minScore; break;
+                    case 'variance': aV = a.variance; bV = b.variance; break;
+                    case 'reviews': aV = a.reviews.length; bV = b.reviews.length; break;
+                    default: aV = a.avgScore; bV = b.avgScore;
+                }
+                if (typeof aV === 'string') return currentSort.dir === 'asc' ? aV.localeCompare(bV) : bV.localeCompare(aV);
+                return currentSort.dir === 'asc' ? aV - bV : bV - aV;
+            });
+            return apps;
+        }
+
+        function updateApplicationsTable() {
+            const tbody = document.getElementById('applicationsTableBody');
+            tbody.innerHTML = '';
+            const sf = useBiasAdjustment ? 'adjustedScore' : 'avgScore';
+            const apps = getFilteredApps();
+            const totalPages = Math.ceil(apps.length / pageSize);
+            const start = (currentPage - 1) * pageSize;
+            apps.slice(start, start + pageSize).forEach(app => {
+                const tags = [];
+                if (app[sf] >= currentCutoff && app.reviews.length > 0) tags.push('<span class="tag" style="background:rgba(16,185,129,0.2);color:var(--success);">✓</span>');
+                if (app.boostedAboveCutoff) tags.push('<span class="tag tag-boosted">↑</span>');
+                if (app.maxScore >= 27 && app[sf] < currentCutoff && app.reviews.length > 0) tags.push('<span class="tag tag-high-single">★</span>');
+                if (app[sf] >= currentCutoff - 1.5 && app[sf] < currentCutoff && app.reviews.length > 0) tags.push('<span class="tag tag-borderline">~</span>');
+                if (app.hasMissing || app.reviews.length < 3) tags.push('<span class="tag tag-missing">!</span>');
+                if (app.stdDev > 3 && app.reviews.length > 1) tags.push('<span class="tag" style="background:rgba(139,92,246,0.2);color:var(--accent-secondary);">σ</span>');
+
+                let cls = 'score-low';
+                if (app[sf] >= currentCutoff) cls = 'score-high';
+                else if (app[sf] >= currentCutoff - 3) cls = 'score-medium';
+
+                const vCls = app.stdDev <= 2 ? 'variance-low' : (app.stdDev <= 4 ? 'variance-medium' : 'variance-high');
+                const vW = Math.min(100, (app.stdDev / 6) * 100);
+
+                tbody.innerHTML += `<tr class="app-row" data-id="${app.id}"><td><code>${app.id}</code></td><td>${app.avgScore.toFixed(1)}</td><td><span class="score-badge ${cls}">${app.adjustedScore.toFixed(1)}</span></td><td>${app.maxScore}</td><td>${app.minScore}</td><td>${app.stdDev.toFixed(1)}<div class="variance-bar"><div class="variance-fill ${vCls}" style="width:${vW}%"></div></div></td><td>${app.reviews.length}</td><td>${tags.join('')}</td></tr><tr class="expandable-content" id="expand-${app.id}"><td colspan="8"><div class="review-detail">${app.reviews.map(r => { const rev = reviewerStats[r.reviewerId]; const b = rev ? (rev.bias > 0 ? '+' + rev.bias.toFixed(1) : rev.bias.toFixed(1)) : '0'; return `<div class="review-item"><div class="reviewer-id">${r.reviewerId} (${b})</div><div style="font-weight:700;">Score: ${r.totalScore}/30</div></div>` }).join('')}</div></td></tr>`;
+            });
+            document.querySelectorAll('.app-row').forEach(row => row.addEventListener('click', () => document.getElementById('expand-' + row.dataset.id).classList.toggle('show')));
+            updatePagination(totalPages);
+        }
+
+        function updatePagination(totalPages) {
+            const c = document.getElementById('pagination');
+            c.innerHTML = '';
+            if (totalPages <= 1) return;
+            const prev = document.createElement('button'); prev.className = 'page-btn'; prev.textContent = '←'; prev.disabled = currentPage === 1; prev.onclick = () => { if (currentPage > 1) { currentPage--; updateApplicationsTable(); } }; c.appendChild(prev);
+            const info = document.createElement('span'); info.style.cssText = 'padding:0 0.5rem;color:var(--text-secondary);font-size:0.85rem;'; info.textContent = `${currentPage}/${totalPages}`; c.appendChild(info);
+            const next = document.createElement('button'); next.className = 'page-btn'; next.textContent = '→'; next.disabled = currentPage === totalPages; next.onclick = () => { if (currentPage < totalPages) { currentPage++; updateApplicationsTable(); } }; c.appendChild(next);
+        }
+
+        document.getElementById('cutoffSlider').addEventListener('input', e => {
+            currentCutoff = parseFloat(e.target.value);
+            document.getElementById('cutoffDisplay').textContent = currentCutoff;
+            document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.toggle('active', parseFloat(btn.dataset.value) === currentCutoff));
+            recalculateWithBias(); updateDashboard();
+        });
+
+        document.querySelectorAll('.preset-btn').forEach(btn => btn.addEventListener('click', () => {
+            currentCutoff = parseFloat(btn.dataset.value);
+            document.getElementById('cutoffSlider').value = currentCutoff;
+            document.getElementById('cutoffDisplay').textContent = currentCutoff;
+            document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            recalculateWithBias(); updateDashboard();
+        }));
+
+        document.querySelectorAll('.filter-btn').forEach(btn => btn.addEventListener('click', () => {
+            currentFilter = btn.dataset.filter;
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentPage = 1; updateApplicationsTable();
+        }));
+
+        document.querySelectorAll('th[data-sort]').forEach(th => th.addEventListener('click', () => {
+            const f = th.dataset.sort;
+            if (currentSort.field === f) currentSort.dir = currentSort.dir === 'asc' ? 'desc' : 'asc';
+            else { currentSort.field = f; currentSort.dir = 'desc'; }
+            currentPage = 1; updateApplicationsTable();
+        }));
+
+        document.getElementById('searchInput').addEventListener('input', e => { searchTerm = e.target.value; currentPage = 1; updateApplicationsTable(); });
+    </script>
+</body>
+
+</html>
