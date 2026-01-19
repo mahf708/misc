@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UWC Palestine 2026 - Interview Analysis</title>
+    <style>
+        :root {
+            --bg-primary: #0f0f23;
+            --bg-secondary: #1a1a2e;
+            --bg-card: #16213e;
+            --text-primary: #e8e8e8;
+            --text-secondary: #a0a0a0;
+            --accent: #6366f1;
+            --accent-light: #818cf8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --border: #2d2d44;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            --glass: rgba(255, 255, 255, 0.05);
+        }
+        
+        .light-mode {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            --glass: rgba(0, 0, 0, 0.02);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        h1 {
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .header-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .theme-toggle {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .theme-toggle:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+        }
+        
+        .stat-card h3 {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent-light);
+        }
+        
+        .stat-detail {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+        
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .filter-group label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        select, input[type="text"] {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            min-width: 160px;
+            transition: all 0.3s ease;
+        }
+        
+        select:focus, input[type="text"]:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+        
+        .table-container {
+            background: var(--bg-card);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            background: var(--bg-secondary);
+            padding: 16px;
+            text-align: left;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            user-select: none;
+            white-space: nowrap;
+            border-bottom: 2px solid var(--border);
+        }
+        
+        th:hover {
+            color: var(--accent-light);
+        }
+        
+        th.sorted {
+            color: var(--accent-light);
+        }
+        
+        th.sorted::after {
+            content: ' ▼';
+            font-size: 0.7rem;
+        }
+        
+        th.sorted.asc::after {
+            content: ' ▲';
+        }
+        
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+        
+        tr:hover {
+            background: var(--glass);
+        }
+        
+        .passport-yes {
+            color: var(--success);
+        }
+        
+        .passport-no {
+            color: var(--danger);
+        }
+        
+        .locality-gaza {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .locality-outside {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .score {
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .score-high {
+            color: var(--success);
+        }
+        
+        .score-mid {
+            color: var(--warning);
+        }
+        
+        .score-low {
+            color: var(--danger);
+        }
+        
+        .rec-ratio {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+        }
+        
+        .bias-section {
+            margin-top: 40px;
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid var(--border);
+        }
+        
+        .bias-section h2 {
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+        }
+        
+        .bias-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+        }
+        
+        .bias-item {
+            background: var(--bg-secondary);
+            padding: 12px 16px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid var(--border);
+        }
+        
+        .bias-name {
+            font-size: 0.85rem;
+        }
+        
+        .bias-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+        }
+        
+        .bias-positive {
+            color: var(--success);
+        }
+        
+        .bias-negative {
+            color: var(--danger);
+        }
+        
+        /* Mobile Cards */
+        @media (max-width: 900px) {
+            .table-container {
+                display: none;
+            }
+            
+            .mobile-cards {
+                display: block;
+            }
+            
+            .mobile-card {
+                background: var(--bg-card);
+                border: 1px solid var(--border);
+                border-radius: 16px;
+                padding: 20px;
+                margin-bottom: 15px;
+                box-shadow: var(--shadow);
+            }
+            
+            .mobile-card-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                margin-bottom: 15px;
+            }
+            
+            .mobile-card-id {
+                font-family: 'JetBrains Mono', monospace;
+                font-size: 1.1rem;
+                font-weight: 600;
+                color: var(--accent-light);
+            }
+            
+            .mobile-card-row {
+                display: flex;
+                justify-content: space-between;
+                padding: 8px 0;
+                border-bottom: 1px solid var(--border);
+            }
+            
+            .mobile-card-row:last-child {
+                border-bottom: none;
+            }
+            
+            .mobile-card-label {
+                color: var(--text-secondary);
+                font-size: 0.85rem;
+            }
+            
+            .mobile-card-value {
+                font-weight: 500;
+            }
+        }
+        
+        @media (min-width: 901px) {
+            .mobile-cards {
+                display: none;
+            }
+        }
+        
+        .global-avg {
+            text-align: center;
+            padding: 10px;
+            background: var(--glass);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        
+        .global-avg strong {
+            color: var(--accent-light);
+        }
+        
+        .cutoff-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 25px;
+        }
+        
+        .cutoff-section h3 {
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+        
+        .cutoff-description {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+        }
+        
+        .cutoff-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            align-items: start;
+        }
+        
+        .cutoff-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .cutoff-group label {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+        }
+        
+        .cutoff-value {
+            color: var(--accent-light);
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .cutoff-group input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: var(--border);
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        
+        .cutoff-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .cutoff-group input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+        
+        .cutoff-ticks {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            padding: 0 2px;
+        }
+        
+        .reset-btn {
+            background: linear-gradient(135deg, var(--danger), #dc2626);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: transform 0.2s, box-shadow 0.2s;
+            align-self: end;
+        }
+        
+        .reset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+        }
+        
+        .stats-breakdown {
+            margin-top: 20px;
+            padding: 16px 20px;
+            background: var(--glass);
+            border-radius: 12px;
+            font-size: 0.9rem;
+            line-height: 1.8;
+        }
+        
+        .stats-breakdown .stats-header {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+        
+        .stats-breakdown .stats-total {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+        
+        .stats-breakdown strong {
+            color: var(--accent-light);
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .stats-breakdown .locality-stats {
+            padding-left: 16px;
+            border-left: 3px solid var(--border);
+            margin-top: 10px;
+        }
+        
+        .stats-breakdown .locality-line {
+            margin: 4px 0;
+        }
+        
+        .stats-breakdown .passport-detail {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-left: 8px;
+        }
+        
+        .distribution-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 25px;
+        }
+        
+        .distribution-section h3 {
+            margin-bottom: 16px;
+            font-size: 1.1rem;
+        }
+        
+        .distribution-chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 4px;
+            height: 120px;
+            padding: 10px 0;
+        }
+        
+        .dist-bar {
+            flex: 1;
+            min-width: 20px;
+            border-radius: 4px 4px 0 0;
+            transition: all 0.3s ease;
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .dist-bar:hover {
+            opacity: 0.8;
+            transform: scaleY(1.05);
+            transform-origin: bottom;
+        }
+        
+        .dist-bar::after {
+            content: attr(data-count);
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .dist-bar:hover::after {
+            opacity: 1;
+        }
+        
+        .distribution-legend {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 12px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🇵🇸 UWC Palestine 2026 Interview Analysis</h1>
+            <div class="header-controls">
+                <button class="theme-toggle" onclick="toggleTheme()">
+                    <span id="theme-icon">🌙</span>
+                    <span id="theme-text">Dark Mode</span>
+                </button>
+            </div>
+        </header>
+        
+        <div class="global-avg">
+            Global Average Score: <strong>23.59</strong> / 30
+        </div>
+        
+        <div class="stats-grid">
+            
+            <div class="stat-card">
+                <h3>Inside Gaza</h3>
+                <div class="stat-value">30</div>
+                <div class="stat-detail">
+                    Avg Raw: 23.96 | 
+                    Avg Debiased: 24.06 | 
+                    Passport: 18/30
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>Outside Gaza</h3>
+                <div class="stat-value">35</div>
+                <div class="stat-detail">
+                    Avg Raw: 23.15 | 
+                    Avg Debiased: 23.01 | 
+                    Passport: 29/35
+                </div>
+            </div>
+            
+        </div>
+        
+        <div class="filters">
+            <div class="filter-group">
+                <label>Locality</label>
+                <select id="filter-locality" onchange="applyFilters()">
+                    <option value="">All Localities</option>
+                    <option value="Inside Gaza">Inside Gaza</option>
+                    <option value="Outside Gaza">Outside Gaza</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Passport</label>
+                <select id="filter-passport" onchange="applyFilters()">
+                    <option value="">All</option>
+                    <option value="yes">Has Passport</option>
+                    <option value="no">No Passport</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Search ID</label>
+                <input type="text" id="search-id" placeholder="e.g. A7B2C" oninput="applyFilters()">
+            </div>
+        </div>
+        
+        <div class="cutoff-section">
+            <h3>📊 Cutoff Filters</h3>
+            <p class="cutoff-description">Use sliders to filter applicants by minimum thresholds. Results update in real-time.</p>
+            
+            <div class="cutoff-controls">
+                <div class="cutoff-group">
+                    <label>
+                        Min Debiased Score: <span id="score-cutoff-value" class="cutoff-value">0</span>/30
+                    </label>
+                    <input type="range" id="score-cutoff" min="0" max="30" step="1" value="0" oninput="updateCutoffs()">
+                    <div class="cutoff-ticks">
+                        <span>0</span><span>10</span><span>20</span><span>30</span>
+                    </div>
+                </div>
+                
+                <div class="cutoff-group">
+                    <label>
+                        Min Raw Score: <span id="raw-cutoff-value" class="cutoff-value">0</span>/30
+                    </label>
+                    <input type="range" id="raw-cutoff" min="0" max="30" step="1" value="0" oninput="updateCutoffs()">
+                    <div class="cutoff-ticks">
+                        <span>0</span><span>10</span><span>20</span><span>30</span>
+                    </div>
+                </div>
+                
+                <div class="cutoff-group">
+                    <label>
+                        Min Recommendation %: <span id="rec-cutoff-value" class="cutoff-value">0</span>%
+                    </label>
+                    <input type="range" id="rec-cutoff" min="0" max="100" step="10" value="0" oninput="updateCutoffs()">
+                    <div class="cutoff-ticks">
+                        <span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span>
+                    </div>
+                </div>
+                
+                <button class="reset-btn" onclick="resetCutoffs()">Reset All Filters</button>
+            </div>
+            
+            <div class="stats-breakdown" id="stats-breakdown">
+            </div>
+        </div>
+        
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th onclick="sortTable('hashed_id')">ID</th>
+                        <th onclick="sortTable('locality')">Locality</th>
+                        <th onclick="sortTable('has_passport')">Passport</th>
+                        <th onclick="sortTable('raw_avg')">Raw Avg</th>
+                        <th onclick="sortTable('debiased_avg')" class="sorted">Debiased Avg</th>
+                        <th onclick="sortTable('rec_ratio')">Recommended</th>
+                        <th onclick="sortTable('review_count')">Reviews</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="mobile-cards" id="mobile-cards">
+        </div>
+
+    </div>
+    
+    <script>
+        const DATA = [{"hashed_id": "177E1", "app_id": "PSE-1356164607", "location": "Gaza, Dier Al-Balah", "locality": "Inside Gaza", "has_passport": true, "raw_avg": 29.0, "debiased_avg": 29.94, "recommendation": "3/3", "rec_ratio": 1.0, "review_count": 3, "raw_scores": [29.0, 29.0, 29.0], "debiased_scores": [27.95, 31.23, 30.65]}, {"hashed_id": "CBD9B", "app_id": "PSE-1716080897", "location": "Halhul", "locality": "Outside Gaza", "has_passport": false, "raw_avg": 28.5, "debiased_avg": 29.1, "recommendation": "4/4", "rec_ratio": 1.0, "review_count": 4, "raw_scores": [26.0, 30.0, 28.0, 30.0], "debiased_scores": [29.86, 30.51, 27.19, 28.84]}, {"hashed_id": "13F10", "app_id": "PSE-8602579316", "location": "Northern Gaza", "locality": "Inside Gaza", "has_passport": false, "raw_avg": 28.6, "debiased_avg": 28.91, "recommendation": "5/5", "rec_ratio": 1.0, "review_count": 5, "raw_scores": [28.0, 30.0, 28.0, 30.0, 27.0], "debiased_scores": [26.95, 32.23, 29.65, 31.2, 24.5]}, {"hashed_id": "958A4", "app_id": "PSE-2201881882", "location": "Cairo, Egypt", "locality": "Outside Gaza", "has_passport": true, "raw_avg": 28.0, "debiased_avg": 28.81, "recommendation": "4/4", "rec_ratio": 1.0, "review_count": 4, "raw_scores": [28.0, 30.0, 28.0, 26.0], "debiased_scores": [30.23, 31.65, 28.51, 24.84]}, {"hashed_id": "48536", "app_id": "PSE-0342100893", "location": "\u062e\u0627\u0646\u064a\u0648\u0646\u0633", "locality": "Outside Gaza", "has_passport": false, "raw_avg": 26.75, "debiased_avg": 28.47, "recommendation": "4/4", "rec_ratio": 1.0, "review_count": 4, "raw_scores": [27.0, 28.0, 27.0, 25.0], "debiased_scores": [27.92, 31.86, 25.84, 28.26]}, {"hashed_id": "E3054", "app_id": "PSE-2753102731", "location": "Arendonk, Belgium", "locality": "Outside Gaza", "has_passport": true, "raw_avg": 29.67, "debiased_avg": 28.27, "recommendation": "3/3", "rec_ratio": 1.0, "review_count": 3, "raw_scores": [30.0, 29.0, 30.0], "debiased_scores": [26.2, 30.2, 28.42]}, {"hashed_id": "9B8B0", "app_id": "PSE-6943722507", "location": "\u0645\u0635\u0631-\u0627\u0644\u062c\u064a\u0632\u0629", "locality": "Outside Gaza", "has_passport": true, "raw_avg": 29.5, "debiased_avg": 28.22, "recommendation": "4/4", "rec_ratio": 1.0, "review_count": 4, "raw_scores": [29.0, 30.0, 30.0, 29.0], "debiased_scores": [27.95, 30.76, 26.34, 27.84]}, {"hashed_id": "711D4", "app_id": "PSE-5347057214", "location": "\u0627\u0644\u0642\u0627\u0647\u0631\u0629 \u060c \u0645\u0635\u0631 \u0627\u0644\u062c\u062f\u064a\u062f\u0629", "locality": "Outside Gaza", "has_passport": true, "raw_avg": 29.0, "debiased_avg": 28.11, "recommendation": "3/3", "rec_ratio": 1.0, "review_count": 3, "raw_scores": [27.0, 30.0, 30.0], "debiased_scores": [25.95, 29.69, 28.7]}, {"hashed_id": "53F74", "app_id": "PSE-9186061544", "location": "Egypt-Zagazig", "locality": "Outside Gaza", "has_passport": true, "raw_avg": 29.75, "debiased_avg": 28.04, "recommendation": "4/4", "rec_ratio": 1.0, "review_count": 4, "raw_scores": [30.0, 30.0, 29.0, 30.0], "debiased_scores": [26.2, 31.2, 27.84, 26.92]}, {"hashed_id": "B3730", "app_id": "PSE-1659128574", "location": "Nuseirat Camp", "locality": "Inside Gaza", "has_passport": true, "raw_avg": 28.0, "debiased_avg": 27.98, "recommendation": "4/4", "rec_ratio": 1.0, "review_count": 4, "raw_scores": [28.0, 25.0, 29.0, 30.0], "debiased_scores": [26.95, 28.86, 29.76, 26.34]}, {"hashed_id": "4FA03", "app_id": "PSE-4773294431", "location": "Gaza", "locality": "Inside Gaza", "has_passport": true, "raw_avg": 29.25, "debiased_avg": 27.97, "recommendation": "4/4", "rec_ratio": 1.0, "review_count": 4, "raw_scores": [29.0, 30.0, 30.0, 28.0], "debiased_scores": [27.95, 30.76, 26.34, 26.84]}, {"hashed_id": "E1510", "app_id": "PSE-5363568674", "location": "Khanyounis- Almawasi", "locality": "Inside Gaza", "has_passport": false, "raw_avg": 26.75, "debiased_avg": 27.96, "recommendation": "4/4", "rec_ratio": 1.0, "review_count": 4, "raw_scores": [27.0, 27.0, 24.0, 29.0], "debiased_scores": [29.23, 27.51, 27.26, 27.84]}, {"hashed_id": "31D79", "app_id": "PSE-4461245032", "location": "Gaza", "locality": "Inside Gaza", "has_passport": true, "raw_avg": 29.33, "debiased_avg": 27.94, "recommendation": "3/3", "rec_ratio": 1.0, "review_count": 3, "raw_scores": [30.0, 28.0, 30.0], "debiased_scores": [26.2, 29.2, 28.42]}, {"hashed_id": "DFD2D", "app_id": "PSE-3470509223", "location": "Gaza strip, Gaza city, Al Nasser Street", "locality": "Inside Gaza", "has_passport": false, "raw_avg": 27.0, "debiased_avg": 27.69, "recommendation": "3/3", "rec_ratio": 1.0, "review_count": 3, "raw_scores": [26.0, 26.0, 29.0], "debiased_scores": [27.65, 27.59, 27.84]}, {"hashed_id": "5BAB0", "app_id": "PSE-2076199402", "location": "\u0645\u062f\u064a\u0646\u0629 \u062f\u064a\u0631 \u0627\u0644\u0628\u0644\u062d \u0641\u064a \u0642\u0637\u0627\u0639 \u063a\u0632\u0629", "locality": "Inside Gaza", "has_passport": true, "raw_avg": 29.0, "debiased_avg": 27.61, "recommendation": "3/3", "rec_ratio": 1.0, "review_count": 3, "raw_scores": [30.0, 28.0, 29.0], "debiased_scores": [26.2, 29.2, 27.42]}, {"hashed_id": "91613", "app_id": "PSE-6508808224", "location": "Ramallah", "locality": "Outside Gaza", "has_passport": false, "raw_avg": 29.0, "debiased_avg": 27.52, "recommendation": "3/3", "rec_ratio": 1.0, "review_count": 3, "raw_scores": [30.0, 29.0, 28.0], "debiased_scores": [26.2, 29.51, 26.84]}, {"hashed_id": "D36C4", "app_id": "PSE-9095768554", "location": "Gaza", "locality": "Inside Gaza", "has_passport": true, "raw_avg": 27.25, "debiased_avg": 27.51, "recommendation": "4/4", "rec_ratio": 1.0, "review_count": 4, "raw_scores": [28.0, 25.0, 28.0, 28.0], "debiased_scores": [26.95, 26.65, 29.59, 26.84]}, {"hashed_id": "13516", "app_id": "PSE-6848086788", "location": "Gaza", "locality": "Inside Gaza", "has_passport": true, "raw_avg": 27.0, "debiased_avg": 26.96, "recommendation": "4/4", "rec_ratio": 1.0, "review_count": 4, "raw_scores": [25.0, 28.0, 25.0, 30.0], "debiased_scores": [25.7, 29.59, 26.2, 26.34]}, {"hashed_id": "56217", "app_id": "PSE-9614823024", "location": "\u0642\u0637\u0627\u0639 \u063a\u0632\u0629\u060c \u0645\u062f\u064a\u0646\u0629 \u062f\u064a\u0631 \u0627\u0644\u0628\u0644\u062d", "locality": "Inside Gaza", "has_passport": true, "raw_avg": 28.0, "debiased_avg": 26.52, "recommendation": "3/3", "rec_ratio": 1.0, "review_count": 3, "raw_scores": [30.0, 27.0, 27.0], "debiased_scores": [26.2, 27.51, 25.84]}, {"hashed_id": "EA371", "app_id": "PSE-9898085669", "location": "Gaza", "locality": "Inside Gaza", "has_passport": false, "raw_avg": 25.0, "debiased_avg": 26.3, "recommendation": "3/4", "rec_ratio": 0.75, "review_count": 4, "raw_scores": [21.0, 23.0, 27.0, 29.0], "debiased_scores": [22.65, 24.59, 28.2, 29.76]}, {"hashed_id": "641FC", "app_id": "PSE-1625967182", "location": "Gaza-Strip", "locality": "Inside Gaza", "has_passport": true, "raw_avg": 27.67, "debiased_avg": 26.3, "recommendation": "3/3", "rec_ratio": 1.0, "review_count": 3, "raw_scores": [28.0, 28.0, 27.0], "debiased_scores": [27.69, 26.7, 24.5]}, {"hashed_id": "CC0C0", "app_id": "PSE-7775120718", "location": "Egypt - Cairo", "locality": "Outside Gaza", "has_passport": true, "raw_avg": 26.0, "debiased_avg": 26.28, "recommendation": "3/3", "rec_ratio": 1.0, "review_count": 3, "raw_scores": [26.0, 26.0, 26.0], "debiased_scores": [24.95, 26.7, 27.2]}, {"hashed_id": "FD3B8", "app_id": "PSE-9112174322", "location": "Hebron - Dura", "locality": "Outside Gaza", "has_passport": false, "raw_avg": 25.0, "debiased_avg": 26.04, "recommendation": "3/3", "rec_ratio": 1.0, "review_count": 3, "raw_scores": [24.0, 27.0, 24.0], "debiased_scores": [24.7, 28.65, 24.76]}, {"hashed_id": "5FC5D", "app_id": "PSE-3512347293", "location": "Nablus", "locality": "Outside Gaza", "has_passport": true, "raw_avg": 27.75, "debiased_avg": 26.04, "recommendation": "4/4", "rec_ratio": 1.0, "review_count": 4, "raw_scores": [28.0, 29.0, 29.0, 25.0], "debiased_scores": [24.2, 30.2, 27.84, 21.92]}, {"hashed_id": "43B9F", "app_id": "PSE-6712338555", "location": "Egypt", "locality": "Outside Gaza", "has_passport": true, "raw_avg": 28.0, "debiased_avg": 25.63, "recommendation": "3/3", "rec_ratio": 1.0, "review_count": 3, "raw_scores": [29.0, 27.0, 28.0], "debiased_scores": [25.2, 24.5, 27.19]}, {"hashed_id": "5AF1B", "app_id": "PSE-5730940573", "location": "Gaza", "locality": "Inside Gaza", "has_passport": true, "raw_avg": 24.75, "debiased_avg": 25.56, "recommendation": "3/4", "rec_ratio": 0.75, "review_count": 4, "raw_scores": [26.0, 25.0, 23.0, 25.0], "debiased_scores": [28.23, 26.65, 23.51, 23.84]}, {"hashed_id": "4719A", "app_id": "PSE-4484318268", "location": "Gaza strip", "locality": "Inside Gaza", "has_passport": true, "raw_avg": 27.5, "debiased_avg": 25.52, "recommendation": "2/4", "rec_ratio": 0.5, "review_count": 4, "raw_scores": [28.0, 26.0, 26.0, 30.0], "debiased_scores": [24.2, 25.69, 24.7, 27.5]}, {"hashed_id": "66AFC", "app_id": "PSE-3253148789", "location": "Egypt - Nasr City \\ \u0645\u0635\u0631 - \u0645\u062f\u064a\u0646\u0629 \u0646\u0635\u0631", "locality": "Outside Gaza", "has_passport": true, "raw_avg": 24.0, "debiased_avg": 25.16, "recommendation": "1/3", "rec_ratio": 0.3333333333333333, "review_count": 3, "raw_scores": [27.0, 24.0, 21.0], "debiased_scores": [27.7, 25.59, 22.2]}, {"hashed_id": "096A5", "app_id": "PSE-8892078504", "location": "\u062f\u064a\u0631 \u0627\u0644\u0628\u0644\u062d", "locality": "Outside Gaza", "has_passport": true, "raw_avg": 23.75, "debiased_avg": 25.05, "recommendation": "2/4", "rec_ratio": 0.5, "review_count": 4, "raw_scores": [23.0, 25.0, 23.0, 24.0], "debiased_scores": [24.65, 26.59, 24.2, 24.76]}, {"hashed_id": "B5A93", "app_id": "PSE-0959602788", "location": "Khan Yunis", "locality": "Inside Gaza", "has_passport": true, "raw_avg": 27.0, "debiased_avg": 25.02, "recommendation": "4/4", "rec_ratio": 1.0, "review_count": 4, "raw_scores": [29.0, 26.0, 26.0, 27.0], "debiased_scores": [25.2, 25.69, 24.7, 24.5]}, {"hashed_id": "1581F", "app_id": "PSE-5323287796", "location": "Taffouh Town", "locality": "Outside Gaza", "has_passport": false, "raw_avg": 26.75, "debiased_avg": 24.77, "recommendation": "2/4", "rec_ratio": 0.5, "review_count": 4, "raw_scores": [29.0, 25.0, 25.0, 28.0], "debiased_scores": [25.2, 24.69, 23.7, 25.5]}, {"hashed_id": "BA5A6", "app_id": "PSE-9931887557", "location": "Egypt-Cairo", "locality": "Outside Gaza", "has_passport": true, "raw_avg": 26.0, "debiased_avg": 24.65, "recommendation": "2/3", "rec_ratio": 0.6666666666666666, "review_count": 3, "raw_scores": [26.0, 27.0, 25.0], "debiased_scores": [26.76, 23.34, 23.84]}, {"hashed_id": "8287C", "app_id": "PSE-4634466582", "location": "Cairo", "locality": "Outside Gaza", "has_passport": true, "raw_avg": 26.0, "debiased_avg": 24.29, "recommendation": "4/4", "rec_ratio": 1.0, "review_count": 4, "raw_scores": [30.0, 24.0, 25.0, 25.0], "debiased_scores": [26.2, 25.2, 23.84, 21.92]}, {"hashed_id": "CFFEA", "app_id": "PSE-3576759569", "location": "Gaza", "locality": "Inside Gaza", "has_passport": true, "raw_avg": 22.0, "debiased_avg": 24.22, "recommendation": "2/3", "rec_ratio": 0.6666666666666666, "review_count": 3, "raw_scores": [21.0, 24.0, 21.0], "debiased_scores": [24.86, 25.59, 22.2]}, {"hashed_id": "D21B4", "app_id": "PSE-7296506933", "location": "nablus", "locality": "Outside Gaza", "has_passport": true, "raw_avg": 24.25, "debiased_avg": 23.71, "recommendation": "2/4", "rec_ratio": 0.5, "review_count": 4, "raw_scores": [26.0, 24.0, 23.0, 24.0], "debiased_scores": [24.95, 23.69, 21.7, 24.51]}, {"hashed_id": "725E6", "app_id": "PSE-8195966415", "location": "Egypt - Cairo", "locality": "Outside Gaza", "has_passport": true, "raw_avg": 23.0, "debiased_avg": 23.64, "recommendation": "3/4", "rec_ratio": 0.75, "review_count": 4, "raw_scores": [26.0, 21.0, 18.0, 27.0], "debiased_scores": [28.23, 22.65, 19.2, 24.5]}, {"hashed_id": "809EE", "app_id": "PSE-7084808366", "location": "Gaza", "locality": "Inside Gaza", "has_passport": false, "raw_avg": 22.0, "debiased_avg": 22.7, "recommendation": "2/4", "rec_ratio": 0.5, "review_count": 4, "raw_scores": [25.0, 20.0, 22.0, 21.0], "debiased_scores": [25.7, 19.69, 23.65, 21.76]}, {"hashed_id": "B19DD", "app_id": "PSE-5122492481", "location": "Gaza", "locality": "Inside Gaza", "has_passport": false, "raw_avg": 21.25, "debiased_avg": 22.46, "recommendation": "1/4", "rec_ratio": 0.25, "review_count": 4, "raw_scores": [19.0, 22.0, 22.0, 22.0], "debiased_scores": [21.23, 22.51, 25.26, 20.84]}, {"hashed_id": "FF428", "app_id": "PSE-5417192088", "location": "Egypt", "locality": "Outside Gaza", "has_passport": true, "raw_avg": 21.75, "debiased_avg": 22.35, "recommendation": "2/4", "rec_ratio": 0.5, "review_count": 4, "raw_scores": [18.0, 20.0, 25.0, 24.0], "debiased_scores": [21.86, 20.51, 24.19, 22.84]}, {"hashed_id": "BB339", "app_id": "PSE-9846706411", "location": "Gaza", "locality": "Inside Gaza", "has_passport": false, "raw_avg": 23.67, "debiased_avg": 22.27, "recommendation": "1/3", "rec_ratio": 0.3333333333333333, "review_count": 3, "raw_scores": [23.0, 23.0, 25.0], "debiased_scores": [19.2, 24.2, 23.42]}, {"hashed_id": "9BC76", "app_id": "PSE-3676207805", "location": "\u0642\u0637\u0627\u0639 \u063a\u0632\u0629", "locality": "Inside Gaza", "has_passport": true, "raw_avg": 23.67, "debiased_avg": 22.27, "recommendation": "2/3", "rec_ratio": 0.6666666666666666, "review_count": 3, "raw_scores": [27.0, 20.0, 24.0], "debiased_scores": [23.2, 21.2, 22.42]}, {"hashed_id": "3C502", "app_id": "PSE-9565058578", "location": "Egypt", "locality": "Outside Gaza", "has_passport": true, "raw_avg": 24.33, "debiased_avg": 21.85, "recommendation": "2/3", "rec_ratio": 0.6666666666666666, "review_count": 3, "raw_scores": [25.0, 26.0, 22.0], "debiased_scores": [21.2, 23.5, 20.84]}, {"hashed_id": "0C325", "app_id": "PSE-7267381518", "location": "\u062f\u064a\u0631 \u0627\u0644\u0628\u0644\u062d", "locality": "Outside Gaza", "has_passport": true, "raw_avg": 20.0, "debiased_avg": 21.72, "recommendation": "2/4", "rec_ratio": 0.5, "review_count": 4, "raw_scores": [22.0, 20.0, 21.0, 17.0], "debiased_scores": [22.92, 23.86, 19.84, 20.26]}, {"hashed_id": "4B9DB", "app_id": "PSE-8503603893", "location": "Cairo", "locality": "Outside Gaza", "has_passport": true, "raw_avg": 23.0, "debiased_avg": 21.63, "recommendation": "1/3", "rec_ratio": 0.3333333333333333, "review_count": 3, "raw_scores": [19.0, 25.0, 25.0], "debiased_scores": [18.69, 23.7, 22.5]}, {"hashed_id": "075E3", "app_id": "PSE-4352042760", "location": "Gaza/ Deir Al Balah", "locality": "Inside Gaza", "has_passport": true, "raw_avg": 19.33, "debiased_avg": 21.55, "recommendation": "0/3", "rec_ratio": 0.0, "review_count": 3, "raw_scores": [20.0, 22.0, 16.0], "debiased_scores": [23.86, 23.59, 17.2]}, {"hashed_id": "795CF", "app_id": "PSE-1210366153", "location": "\u0645\u062f\u064a\u0646\u0629 \u063a\u0632\u0629", "locality": "Inside Gaza", "has_passport": false, "raw_avg": 19.5, "debiased_avg": 21.22, "recommendation": "2/4", "rec_ratio": 0.5, "review_count": 4, "raw_scores": [19.0, 17.0, 23.0, 19.0], "debiased_scores": [19.92, 20.86, 21.84, 22.26]}, {"hashed_id": "8E2E5", "app_id": "PSE-7008619370", "location": "Egypt _ Cairo _ Madinaty", "locality": "Outside Gaza", "has_passport": true, "raw_avg": 19.0, "debiased_avg": 21.22, "recommendation": "0/3", "rec_ratio": 0.0, "review_count": 3, "raw_scores": [16.0, 22.0, 19.0], "debiased_scores": [19.86, 23.59, 20.2]}, {"hashed_id": "18A5C", "app_id": "PSE-4384386608", "location": "Gaza City", "locality": "Inside Gaza", "has_passport": false, "raw_avg": 19.75, "debiased_avg": 21.05, "recommendation": "1/4", "rec_ratio": 0.25, "review_count": 4, "raw_scores": [22.0, 24.0, 18.0, 15.0], "debiased_scores": [23.65, 25.59, 19.2, 15.76]}, {"hashed_id": "B5770", "app_id": "PSE-3840436521", "location": "Jenin , Yabad", "locality": "Outside Gaza", "has_passport": true, "raw_avg": 17.75, "debiased_avg": 20.36, "recommendation": "0/4", "rec_ratio": 0.0, "review_count": 4, "raw_scores": [20.0, 18.0, 17.0, 16.0], "debiased_scores": [18.95, 20.23, 18.65, 23.59]}, {"hashed_id": "8E97A", "app_id": "PSE-3967395499", "location": "GAZA", "locality": "Inside Gaza", "has_passport": true, "raw_avg": 21.0, "debiased_avg": 19.81, "recommendation": "0/4", "rec_ratio": 0.0, "review_count": 4, "raw_scores": [24.0, 22.0, 21.0, 17.0], "debiased_scores": [20.2, 21.69, 21.51, 15.84]}, {"hashed_id": "03072", "app_id": "PSE-6612557037", "location": "Egypt", "locality": "Outside Gaza", "has_passport": true, "raw_avg": 20.0, "debiased_avg": 19.75, "recommendation": "1/4", "rec_ratio": 0.25, "review_count": 4, "raw_scores": [23.0, 18.0, 17.0, 22.0], "debiased_scores": [23.7, 19.2, 17.76, 18.34]}, {"hashed_id": "55ACA", "app_id": "PSE-1653775792", "location": "Cairo", "locality": "Outside Gaza", "has_passport": true, "raw_avg": 19.75, "debiased_avg": 19.37, "recommendation": "0/4", "rec_ratio": 0.0, "review_count": 4, "raw_scores": [19.0, 21.0, 18.0, 21.0], "debiased_scores": [19.7, 19.7, 19.59, 18.5]}, {"hashed_id": "D987F", "app_id": "PSE-6854750903", "location": "Gaza City", "locality": "Inside Gaza", "has_passport": true, "raw_avg": 18.25, "debiased_avg": 19.36, "recommendation": "0/4", "rec_ratio": 0.0, "review_count": 4, "raw_scores": [20.0, 17.0, 16.0, 20.0], "debiased_scores": [18.95, 19.23, 17.65, 21.59]}, {"hashed_id": "A92DD", "app_id": "PSE-3669401793", "location": "Deir al-Balah, Gaza", "locality": "Inside Gaza", "has_passport": false, "raw_avg": 19.5, "debiased_avg": 19.25, "recommendation": "1/4", "rec_ratio": 0.25, "review_count": 4, "raw_scores": [21.0, 18.0, 15.0, 24.0], "debiased_scores": [21.7, 19.2, 15.76, 20.34]}, {"hashed_id": "0DB2B", "app_id": "PSE-8472982100", "location": "Bethlehem-Zatara", "locality": "Outside Gaza", "has_passport": true, "raw_avg": 18.25, "debiased_avg": 19.06, "recommendation": "1/4", "rec_ratio": 0.25, "review_count": 4, "raw_scores": [16.0, 18.0, 20.0, 19.0], "debiased_scores": [18.23, 19.65, 20.51, 17.84]}, {"hashed_id": "8FCBD", "app_id": "PSE-1001900584", "location": "Alexandria", "locality": "Outside Gaza", "has_passport": true, "raw_avg": 20.33, "debiased_avg": 18.96, "recommendation": "1/3", "rec_ratio": 0.3333333333333333, "review_count": 3, "raw_scores": [19.0, 20.0, 22.0], "debiased_scores": [18.69, 18.7, 19.5]}, {"hashed_id": "FB18C", "app_id": "PSE-0953867776", "location": "Gaza", "locality": "Inside Gaza", "has_passport": false, "raw_avg": 18.25, "debiased_avg": 18.23, "recommendation": "0/4", "rec_ratio": 0.0, "review_count": 4, "raw_scores": [18.0, 16.0, 14.0, 25.0], "debiased_scores": [16.95, 19.86, 14.76, 21.34]}, {"hashed_id": "3B8D3", "app_id": "PSE-5788744944", "location": "\u062e\u0627\u0646 \u064a\u0648\u0646\u0633 \u0627\u0644\u0645\u0648\u0627\u0635\u064a (\u0646\u0627\u0632\u062d\u0629 )", "locality": "Outside Gaza", "has_passport": false, "raw_avg": 20.0, "debiased_avg": 18.08, "recommendation": "0/3", "rec_ratio": 0.0, "review_count": 3, "raw_scores": [23.0, 22.0, 15.0], "debiased_scores": [19.2, 21.19, 13.84]}, {"hashed_id": "D748C", "app_id": "PSE-9505086678", "location": "Egypt", "locality": "Outside Gaza", "has_passport": true, "raw_avg": 16.67, "debiased_avg": 17.59, "recommendation": "0/3", "rec_ratio": 0.0, "review_count": 3, "raw_scores": [18.0, 14.0, 18.0], "debiased_scores": [16.95, 16.23, 19.59]}, {"hashed_id": "B6BBA", "app_id": "PSE-8774336511", "location": "Gaza", "locality": "Inside Gaza", "has_passport": true, "raw_avg": 16.33, "debiased_avg": 17.28, "recommendation": "1/3", "rec_ratio": 0.3333333333333333, "review_count": 3, "raw_scores": [19.0, 20.0, 10.0], "debiased_scores": [17.95, 22.23, 11.65]}, {"hashed_id": "8CA00", "app_id": "PSE-1770611770", "location": "Egypt", "locality": "Outside Gaza", "has_passport": true, "raw_avg": 14.67, "debiased_avg": 16.67, "recommendation": "0/3", "rec_ratio": 0.0, "review_count": 3, "raw_scores": [15.0, 14.0, 15.0], "debiased_scores": [17.23, 14.51, 18.26]}, {"hashed_id": "99388", "app_id": "PSE-6812061447", "location": "\u0645\u0635\u0631 / \u0627\u0644\u0642\u0627\u0647\u0631\u0629", "locality": "Outside Gaza", "has_passport": true, "raw_avg": 14.33, "debiased_avg": 16.16, "recommendation": "0/3", "rec_ratio": 0.0, "review_count": 3, "raw_scores": [14.0, 13.0, 16.0], "debiased_scores": [16.23, 14.65, 17.59]}, {"hashed_id": "9E6B2", "app_id": "PSE-2629094278", "location": "\u0641\u064a \u062f\u0648\u0644\u0629 \u0627\u0644\u0625\u0645\u0627\u0631\u0627\u062a \u0641\u064a \u0645\u062f\u064a\u0646\u0629 \u0623\u0628\u0648 \u0638\u0628\u064a \u0641\u064a \u0627\u0644\u0645\u062f\u064a\u0646\u0629 \u0627\u0644\u0625\u0645\u0627\u0631\u0627\u062a \u0627\u0644\u0625\u0646\u0633\u0627\u0646\u064a\u0629", "locality": "Outside Gaza", "has_passport": true, "raw_avg": 15.25, "debiased_avg": 15.85, "recommendation": "0/4", "rec_ratio": 0.0, "review_count": 4, "raw_scores": [10.0, 15.0, 19.0, 17.0], "debiased_scores": [13.86, 15.51, 18.19, 15.84]}, {"hashed_id": "2DD6E", "app_id": "PSE-2155064230", "location": "Dir Al Balah", "locality": "Inside Gaza", "has_passport": false, "raw_avg": 13.33, "debiased_avg": 14.5, "recommendation": "0/3", "rec_ratio": 0.0, "review_count": 3, "raw_scores": [16.0, 12.0, 12.0], "debiased_scores": [16.7, 13.59, 13.2]}, {"hashed_id": "D78C1", "app_id": "PSE-2317860227", "location": "Egypt-Cairo", "locality": "Outside Gaza", "has_passport": true, "raw_avg": 14.33, "debiased_avg": 12.94, "recommendation": "0/3", "rec_ratio": 0.0, "review_count": 3, "raw_scores": [18.0, 12.0, 13.0], "debiased_scores": [14.2, 13.2, 11.42]}];
+        const REVIEWER_BIAS = {"120702411": {"name": "M", "avg": 27.39, "bias": 3.8, "count": 18}, "128280982": {"name": "K", "avg": 22.39, "bias": -1.2, "count": 23}, "130647067": {"name": "A", "avg": 25.17, "bias": 1.58, "count": 6}, "100159150": {"name": "J", "avg": 22.67, "bias": -0.92, "count": 3}, "115826368": {"name": "AA", "avg": 19.73, "bias": -3.86, "count": 11}, "130647070": {"name": "KTA", "avg": 24.75, "bias": 1.16, "count": 24}, "130647074": {"name": "AMS", "avg": 20.33, "bias": -3.26, "count": 3}, "127385327": {"name": "B", "avg": 23.08, "bias": -0.51, "count": 13}, "130433223": {"name": "JA", "avg": 24.4, "bias": 0.81, "count": 5}, "100103122": {"name": "D", "avg": 24.64, "bias": 1.05, "count": 14}, "106141647": {"name": "A", "avg": 21.36, "bias": -2.23, "count": 14}, "125375249": {"name": "AAN", "avg": 21.94, "bias": -1.65, "count": 17}, "130394173": {"name": "A", "avg": 26.09, "bias": 2.5, "count": 11}, "123270325": {"name": "H", "avg": 23.9, "bias": 0.31, "count": 10}, "125500179": {"name": "H", "avg": 24.89, "bias": 1.3, "count": 9}, "127385303": {"name": "D", "avg": 22.0, "bias": -1.59, "count": 15}, "128951060": {"name": "AA", "avg": 22.83, "bias": -0.76, "count": 12}, "106146279": {"name": "F", "avg": 22.89, "bias": -0.7, "count": 9}, "130647069": {"name": "A", "avg": 27.25, "bias": 3.66, "count": 8}, "130647076": {"name": "Z", "avg": 26.67, "bias": 3.08, "count": 3}, "130647065": {"name": "AA", "avg": 16.0, "bias": -7.59, "count": 1}, "129367731": {"name": "T", "avg": 20.33, "bias": -3.26, "count": 3}};
+        
+        let currentSort = { key: 'debiased_avg', asc: false };
+        let filteredData = [...DATA];
+        
+        function getScoreClass(score) {
+            if (score >= 25) return 'score-high';
+            if (score >= 20) return 'score-mid';
+            return 'score-low';
+        }
+        
+        function getLocalityClass(locality) {
+            if (locality === 'Inside Gaza') return 'locality-gaza';
+            return 'locality-outside';
+        }
+        
+        function renderTable() {
+            const tbody = document.getElementById('table-body');
+            const mobileCards = document.getElementById('mobile-cards');
+            
+            tbody.innerHTML = filteredData.map(a => `
+                <tr>
+                    <td><code>${a.hashed_id}</code></td>
+                    <td><span class="${getLocalityClass(a.locality)}">${a.locality}</span></td>
+                    <td class="${a.has_passport ? 'passport-yes' : 'passport-no'}">${a.has_passport ? '✅' : '❌'}</td>
+                    <td class="score ${getScoreClass(a.raw_avg)}">${a.raw_avg.toFixed(1)}</td>
+                    <td class="score ${getScoreClass(a.debiased_avg)}">${a.debiased_avg.toFixed(1)}</td>
+                    <td class="rec-ratio">${a.recommendation}</td>
+                    <td>${a.review_count}</td>
+                </tr>
+            `).join('');
+            
+            mobileCards.innerHTML = filteredData.map(a => `
+                <div class="mobile-card">
+                    <div class="mobile-card-header">
+                        <span class="mobile-card-id">${a.hashed_id}</span>
+                        <span class="${getLocalityClass(a.locality)}">${a.locality}</span>
+                    </div>
+                    <div class="mobile-card-row">
+                        <span class="mobile-card-label">Passport</span>
+                        <span class="mobile-card-value ${a.has_passport ? 'passport-yes' : 'passport-no'}">${a.has_passport ? 'Yes ✅' : 'No ❌'}</span>
+                    </div>
+                    <div class="mobile-card-row">
+                        <span class="mobile-card-label">Raw Score</span>
+                        <span class="mobile-card-value score ${getScoreClass(a.raw_avg)}">${a.raw_avg.toFixed(1)} / 30</span>
+                    </div>
+                    <div class="mobile-card-row">
+                        <span class="mobile-card-label">Debiased Score</span>
+                        <span class="mobile-card-value score ${getScoreClass(a.debiased_avg)}">${a.debiased_avg.toFixed(1)} / 30</span>
+                    </div>
+                    <div class="mobile-card-row">
+                        <span class="mobile-card-label">Recommended</span>
+                        <span class="mobile-card-value rec-ratio">${a.recommendation}</span>
+                    </div>
+                    <div class="mobile-card-row">
+                        <span class="mobile-card-label">Reviews</span>
+                        <span class="mobile-card-value">${a.review_count}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function renderBiasGrid() {
+            const grid = document.getElementById('bias-grid');
+            const sorted = Object.entries(REVIEWER_BIAS)
+                .sort((a, b) => b[1].bias - a[1].bias);
+            
+            grid.innerHTML = sorted.map(([id, data]) => `
+                <div class="bias-item">
+                    <span class="bias-name">${data.name.split(' ')[0]} (n=${data.count})</span>
+                    <span class="bias-value ${data.bias >= 0 ? 'bias-positive' : 'bias-negative'}">
+                        ${data.bias >= 0 ? '+' : ''}${data.bias.toFixed(1)}
+                    </span>
+                </div>
+            `).join('');
+        }
+        
+        function applyFilters() {
+            const locality = document.getElementById('filter-locality').value;
+            const passport = document.getElementById('filter-passport').value;
+            const searchId = document.getElementById('search-id').value.toUpperCase();
+            const scoreCutoff = parseFloat(document.getElementById('score-cutoff').value);
+            const rawCutoff = parseFloat(document.getElementById('raw-cutoff').value);
+            const recCutoff = parseFloat(document.getElementById('rec-cutoff').value) / 100;
+            
+            filteredData = DATA.filter(a => {
+                if (locality && a.locality !== locality) return false;
+                if (passport === 'yes' && !a.has_passport) return false;
+                if (passport === 'no' && a.has_passport) return false;
+                if (searchId && !a.hashed_id.includes(searchId)) return false;
+                if (a.debiased_avg < scoreCutoff) return false;
+                if (a.raw_avg < rawCutoff) return false;
+                if (a.rec_ratio < recCutoff) return false;
+                return true;
+            });
+            
+            sortData();
+            renderTable();
+            updateStatsBreakdown();
+            renderDistribution();
+        }
+        
+        function updateCutoffs() {
+            document.getElementById('score-cutoff-value').textContent = document.getElementById('score-cutoff').value;
+            document.getElementById('raw-cutoff-value').textContent = document.getElementById('raw-cutoff').value;
+            document.getElementById('rec-cutoff-value').textContent = document.getElementById('rec-cutoff').value;
+            applyFilters();
+        }
+        
+        function resetCutoffs() {
+            document.getElementById('score-cutoff').value = 0;
+            document.getElementById('raw-cutoff').value = 0;
+            document.getElementById('rec-cutoff').value = 0;
+            document.getElementById('filter-locality').value = '';
+            document.getElementById('filter-passport').value = '';
+            document.getElementById('search-id').value = '';
+            updateCutoffs();
+        }
+        
+        function updateStatsBreakdown() {
+            const total = filteredData.length;
+            
+            // Count by locality
+            const gaza = filteredData.filter(a => a.locality === 'Inside Gaza');
+            const outside = filteredData.filter(a => a.locality === 'Outside Gaza');
+            
+            // Count passports per locality
+            const gazaPassport = gaza.filter(a => a.has_passport).length;
+            const outsidePassport = outside.filter(a => a.has_passport).length;
+            
+            const html = `
+                <div class="stats-header">📋 Filtered Results</div>
+                <div class="stats-total">
+                    <strong>${total}</strong> of <strong>${DATA.length}</strong> applicants match current filters
+                </div>
+                <div class="locality-stats">
+                    <div class="locality-line">
+                        <strong>${gaza.length}</strong> are INSIDE Gaza
+                        <span class="passport-detail">(${gazaPassport} with passport)</span>
+                    </div>
+                    <div class="locality-line">
+                        <strong>${outside.length}</strong> are OUTSIDE Gaza
+                        <span class="passport-detail">(${outsidePassport} with passport)</span>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('stats-breakdown').innerHTML = html;
+        }
+        
+        function renderDistribution() {
+            const chart = document.getElementById('distribution-chart');
+            const scoreCutoff = parseFloat(document.getElementById('score-cutoff').value);
+            
+            // Create buckets for score ranges (15-18, 18-21, 21-24, 24-27, 27-30)
+            const buckets = [
+                { min: 15, max: 18, label: '15-18', count: 0, aboveCutoff: 0 },
+                { min: 18, max: 21, label: '18-21', count: 0, aboveCutoff: 0 },
+                { min: 21, max: 24, label: '21-24', count: 0, aboveCutoff: 0 },
+                { min: 24, max: 27, label: '24-27', count: 0, aboveCutoff: 0 },
+                { min: 27, max: 30, label: '27-30', count: 0, aboveCutoff: 0 }
+            ];
+            
+            DATA.forEach(a => {
+                for (let b of buckets) {
+                    if (a.debiased_avg >= b.min && a.debiased_avg < b.max) {
+                        b.count++;
+                        if (a.debiased_avg >= scoreCutoff) b.aboveCutoff++;
+                        break;
+                    }
+                }
+                // Handle exactly 30
+                if (a.debiased_avg >= 30) {
+                    buckets[buckets.length - 1].count++;
+                    if (a.debiased_avg >= scoreCutoff) buckets[buckets.length - 1].aboveCutoff++;
+                }
+            });
+            
+            const maxCount = Math.max(...buckets.map(b => b.count), 1);
+            
+            chart.innerHTML = buckets.map(b => {
+                const height = (b.count / maxCount) * 100;
+                const aboveHeight = (b.aboveCutoff / maxCount) * 100;
+                const belowHeight = height - aboveHeight;
+                
+                return `
+                    <div class="dist-bar-container" style="flex: 1; display: flex; flex-direction: column; align-items: center;">
+                        <div style="display: flex; flex-direction: column; width: 100%; height: 100px; justify-content: flex-end;">
+                            <div class="dist-bar" style="height: ${aboveHeight}%; background: var(--success);" data-count="${b.aboveCutoff} above"></div>
+                            <div class="dist-bar" style="height: ${belowHeight}%; background: var(--danger); border-radius: 0;" data-count="${b.count - b.aboveCutoff} below"></div>
+                        </div>
+                        <div style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 4px;">${b.label}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function sortTable(key) {
+            if (currentSort.key === key) {
+                currentSort.asc = !currentSort.asc;
+            } else {
+                currentSort.key = key;
+                currentSort.asc = false;
+            }
+            
+            // Update header styles
+            document.querySelectorAll('th').forEach(th => th.classList.remove('sorted', 'asc'));
+            event.target.classList.add('sorted');
+            if (currentSort.asc) event.target.classList.add('asc');
+            
+            sortData();
+            renderTable();
+        }
+        
+        function sortData() {
+            filteredData.sort((a, b) => {
+                let valA = a[currentSort.key];
+                let valB = b[currentSort.key];
+                
+                if (typeof valA === 'string') {
+                    valA = valA.toLowerCase();
+                    valB = valB.toLowerCase();
+                }
+                
+                if (valA < valB) return currentSort.asc ? -1 : 1;
+                if (valA > valB) return currentSort.asc ? 1 : -1;
+                return 0;
+            });
+        }
+        
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+            const icon = document.getElementById('theme-icon');
+            const text = document.getElementById('theme-text');
+            
+            if (document.body.classList.contains('light-mode')) {
+                icon.textContent = '☀️';
+                text.textContent = 'Light Mode';
+            } else {
+                icon.textContent = '🌙';
+                text.textContent = 'Dark Mode';
+            }
+        }
+        
+        // Initialize
+        renderTable();
+        renderBiasGrid();
+        updateStatsBreakdown();
+        renderDistribution();
+    </script>
+</body>
+</html>
