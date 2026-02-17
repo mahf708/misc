@@ -468,9 +468,9 @@
 
 <div class="controls">
     <button class="filter-btn active" id="btn-all" onclick="clearFocus(this)">All Initiatives</button>
-    <button class="filter-btn" id="btn-v3-lr" onclick="focusByClassName('v3-lr', this)">v3 Low-Res</button>
-    <button class="filter-btn" id="btn-v3-hr" onclick="focusByClassName('v3-hr', this)">v3 High-Res</button>
-    <button class="filter-btn" id="btn-v4" onclick="focusByClassName('v4', this)">v4 / OMEGA</button>
+    <button class="filter-btn" id="btn-v3-lr" onclick="focusByClassName('v3-lr', this)">v3 LR (~100km)</button>
+    <button class="filter-btn" id="btn-v3-hr" onclick="focusByClassName('v3-hr', this)">v3 HR (~25km)</button>
+    <button class="filter-btn" id="btn-v4" onclick="focusByClassName('v4', this)">v4 (~10km)</button>
     <button class="filter-btn" id="btn-multi" onclick="focusByClassName('multi', this)">Infrastructure</button>
 </div>
 
@@ -525,52 +525,52 @@
     const roadmapData = [
     {
         "id": 1,
-        "title": "Finish Ai2 Training",
+        "title": "Finalize v3 LR piControl Training",
         "group": "v3 LR",
         "start": 0,
         "duration": 4,
         "people": "Elynn, Indu",
-        "notes": "Single-trajectory coupled v3 LR piControl",
+        "notes": "Single-trajectory coupled v3 LR piControl started by Ai2 team",
         "className": "v3-lr"
     },
     {
         "id": 2,
-        "title": "Train Near-Historical",
+        "title": "Train v3 LR Near-Historical",
         "group": "v3 LR",
         "start": 3,
         "duration": 4,
         "people": "Waits on above",
-        "notes": "Single-trajectory coupled v3 LR near-historical run",
+        "notes": "Single-trajectory coupled v3 LR near-historical run will be conducted by E3SM AI group team",
         "className": "v3-lr"
     },
     {
         "id": 3,
-        "title": "Retrain Historical",
+        "title": "Retrain v3 LR Near-Historical",
         "group": "v3 LR",
         "start": 2,
         "duration": 5,
         "people": "Olawale, Wuyin",
-        "notes": "Atmosphere-only and coupled v3 LR historical from ensemble",
+        "notes": "Retrain atmosphere-only and coupled v3 LR historical from ensemble to help better evaluate model predictive skill and other planned analyses",
         "className": "v3-lr"
     },
     {
         "id": 4,
-        "title": "Rigorously Evaluate",
+        "title": "Evaluation",
         "group": "v3 LR",
         "start": 0,
-        "duration": 7,
+        "duration": 12,
         "people": "Olawale, Wuyin, Khachik, Naser, Hassan",
         "notes": "Comparative analysis, variability modes. Transits to v3 HR eval.",
         "className": "v3-lr"
     },
     {
         "id": 5,
-        "title": "Distributed Backend",
+        "title": "New Distributed Backend",
         "group": "v3 HR",
         "start": 0,
         "duration": 4,
         "people": "Naser, Jeff, Andrew, Peter, Luca",
-        "notes": "Integrate new distributed backend (spatial parallelism)",
+        "notes": "Integrate new distributed backend (spatial parallelism) added by E3SM team to the Ai2 codebase. This enables higher-resolution training and more involved emulators suitable for higher-resolution models",
         "className": "v3-hr"
     },
     {
@@ -580,17 +580,17 @@
         "start": 0,
         "duration": 4,
         "people": "Elynn, Indu, Finn",
-        "notes": "Verify data ingestion and processing",
+        "notes": "Verify data ingestion and processing pipeline is ready for v3 HR training",
         "className": "v3-hr"
     },
     {
         "id": 7,
-        "title": "Train v3 HR config",
+        "title": "Train v3 HR emulator",
         "group": "v3 HR",
         "start": 3,
         "duration": 6,
         "people": "Team",
-        "notes": "Waits on backend and testing",
+        "notes": "Waits on backend and testing, conduct actual training to get a high-skill v3 HR emulator",
         "className": "v3-hr"
     },
     {
@@ -600,17 +600,17 @@
         "start": 3,
         "duration": 9,
         "people": "Dev/Workflow Team",
-        "notes": "Embed dev team, continuity from v3 LR. Release alongside physics.",
+        "notes": "Embed dev/workflow team to v3 HR physics effort, continuity from v3 LR. Goal is to release emulator alongside physics counterpart",
         "className": "v3-hr"
     },
     {
         "id": 9,
-        "title": "v4 Comp Emulators",
+        "title": "v4 Component Emulators",
         "group": "v4",
         "start": 6,
         "duration": 6,
         "people": "Unclear plans",
-        "notes": "Transition to ne256pg2, target OMEGA. Waits on EAMxx/OMEGA.",
+        "notes": "Transition to higher-res, target OMEGA and EAMxx only. Will require thorough testing and workflow upgrades",
         "className": "v4"
     },
     {
@@ -620,7 +620,7 @@
         "start": 9,
         "duration": 3,
         "people": "Unclear plans",
-        "notes": "Fine-tune emulators. Waits on above.",
+        "notes": "Fine-tune component emulators to work well in concert",
         "className": "v4"
     },
     {
@@ -630,7 +630,7 @@
         "start": 0,
         "duration": 4,
         "people": "Andrew, Jon",
-        "notes": "Fortran-Torch coupling activities",
+        "notes": "Fortran-Torch coupling activities as an accessible dry run for C++ emulators",
         "className": "multi"
     },
     {
@@ -640,7 +640,7 @@
         "start": 0,
         "duration": 7,
         "people": "Naser, Jeff, Luca, Peter, Oscar, Elynn",
-        "notes": "For CIME integration",
+        "notes": "For full CIME integration with model-agnostic backends, allowing users to bring their own models",
         "className": "multi"
     },
     {
@@ -650,7 +650,7 @@
         "start": 0,
         "duration": 12,
         "people": "Naser, Jaelyn",
-        "notes": "e3sm_diags, etc.",
+        "notes": "Upgrade emulators with first-class support with existing E3SM toolchain, e.g., e3sm_diags",
         "className": "multi"
     },
     {
@@ -660,7 +660,7 @@
         "start": 0,
         "duration": 12,
         "people": "Indu, Naser, Olawale, Peter",
-        "notes": "Exploring/expanding neural architectures",
+        "notes": "Exploring/expanding neural architectures and responding to needs raised by ongoing evaluation, explore different models for different timescales",
         "className": "multi"
     }
 ];
