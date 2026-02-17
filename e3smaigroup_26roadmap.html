@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>E3SM AI Roadmap 2026</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js"></script>
+    <style>
+        :root {
+            /* Light Theme */
+            --bg-body: #f4f7f9;
+            --bg-card: rgba(255, 255, 255, 0.8);
+            --text-main: #1a202c;
+            --text-muted: #4a5568;
+            --border: rgba(226, 232, 240, 0.8);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --header-bg: rgba(255, 255, 255, 0.7);
+            
+            --primary: #0f172a;       
+            --primary-light: #1e293b; 
+            --accent: #3b82f6;        
+            --accent-text: #ffffff;
+            --secondary: #6366f1;
+
+            --grid-dot: #cbd5e0;
+            --vh: 100vh;
+            --glass-blur: 12px;
+            --col-width: 120px;
+        }
+
+        [data-theme="dark"] {
+            --bg-body: #0b0e14;
+            --bg-card: rgba(22, 27, 34, 0.8);
+            --text-main: #f0f6fc;
+            --text-muted: #8b949e;
+            --border: rgba(48, 54, 61, 0.8);
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+            --header-bg: rgba(11, 14, 20, 0.7);
+            
+            --primary: #58a6ff;       
+            --primary-light: #79c0ff; 
+            --accent: #3b82f6;
+            --accent-text: #ffffff;
+            --secondary: #7c3aed;
+            
+            --grid-dot: #30363d;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Outfit', 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* GLASSMORPHISM UTILITY */
+        .glass {
+            background: var(--bg-card);
+            backdrop-filter: blur(var(--glass-blur));
+            -webkit-backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--border);
+        }
+
+        /* HEADER - Compacted for timeline focus */
+        header {
+            padding: 0.6rem 1rem;
+            flex-shrink: 0;
+            z-index: 50;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            background: var(--header-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .header-content h1 {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header-content .subtitle {
+            font-size: 0.65rem;
+            opacity: 0.7;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+            margin-top: -2px;
+        }
+
+        .theme-toggle {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            width: 32px; height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* CONTROLS - Scrollable on mobile */
+        .controls {
+            padding: 0.5rem 1rem;
+            background: var(--header-bg);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            gap: 0.5rem;
+            overflow-x: auto;
+            flex-shrink: 0;
+            align-items: center;
+            scrollbar-width: none;
+            z-index: 40;
+            -webkit-overflow-scrolling: touch;
+        }
+        .controls::-webkit-scrollbar { display: none; }
+        
+        .filter-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 0.35rem 0.75rem;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .filter-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        /* MAIN CONTAINER - Centerpiece */
+        .main-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .timeline-scroll-area {
+            flex: 1;
+            overflow-x: auto;
+            overflow-y: auto;
+            position: relative;
+            background-color: var(--bg-body);
+            background-image: radial-gradient(var(--grid-dot) 1px, transparent 1px);
+            background-size: 25px 25px;
+            padding-bottom: 150px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* GRID HEADER (Months) */
+        .grid-header {
+            display: flex;
+            position: sticky;
+            top: 0;
+            background: var(--bg-body);
+            z-index: 50;
+            border-bottom: 1px solid var(--border);
+            height: 45px;
+        }
+        
+        .grid-spacer {
+            width: 150px; /* Same as group-header */
+            flex-shrink: 0;
+            background: var(--bg-body);
+        }
+        
+        .month-col {
+            width: var(--col-width);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            border-right: 1px solid var(--border-light);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* SWIMLANES */
+        .swimlane-container {
+            position: relative;
+            padding-bottom: 50px;
+            transition: all 0.4s ease;
+        }
+        
+        .swimlane-group {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            min-height: 80px;
+            background: rgba(255,255,255,0.02);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        /* FOCUS MODE: Zoom & Blur rest */
+        .swimlane-container.focus-mode .swimlane-group {
+            opacity: 0.15;
+            filter: blur(2px) grayscale(0.5);
+        }
+
+        .swimlane-container.focus-mode .swimlane-group.focused {
+            opacity: 1;
+            filter: none;
+            transform: scale(1.015);
+            z-index: 10;
+            background: rgba(255,255,255,0.05);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            border-color: var(--accent);
+        }
+        
+        .group-header {
+            position: sticky;
+            left: 0;
+            z-index: 40;
+            background: var(--bg-card);
+            padding: 1rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 150px; /* Fixed width for alignment */
+            flex-shrink: 0;
+            border-right: 1px solid var(--border);
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            cursor: pointer;
+        }
+        
+        .track-area {
+            position: relative;
+            flex-grow: 1;
+            background-image: 
+                linear-gradient(to right, var(--border-light) 1px, transparent 1px);
+            background-size: var(--col-width) 100%;
+        }
+
+        /* ROADMAP ITEMS */
+        .item {
+            position: absolute;
+            height: 40px;
+            border-radius: 10px;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 600;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255,255,255,0.15);
+            opacity: 0;
+            animation: slideIn 0.5s ease-out forwards;
+            display: block; 
+        }
+        
+        .item-label {
+            position: sticky;
+            left: 160px; /* header (150) + small padding (10) */
+            padding: 0 1rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+            display: inline-block;
+            line-height: 40px;
+            z-index: 2;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .item.v3-lr { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+        .item.v3-hr { background: linear-gradient(135deg, #8b5cf6, #5b21b6); }
+        .item.v4 { background: linear-gradient(135deg, #f59e0b, #b45309); }
+        .item.multi { background: linear-gradient(135deg, #10b981, #047857); }
+
+        /* TODAY MARKER */
+        .today-marker {
+            position: absolute;
+            top: 0; bottom: 0;
+            width: 2px;
+            background: #ef4444;
+            z-index: 35;
+            pointer-events: none;
+        }
+        
+        .today-label {
+            position: absolute;
+            top: 45px;
+            background: #ef4444;
+            color: white;
+            font-size: 0.55rem;
+            font-weight: 800;
+            padding: 3px 6px;
+            border-radius: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            animation: pulse-red 2s infinite;
+        }
+        
+        @keyframes pulse-red {
+            0%, 100% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.1); }
+        }
+
+        /* MODAL - Adaptive for Mobile (Bottom Sheet) */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .modal-overlay.active { display: flex; opacity: 1; }
+
+        .modal-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            width: 90%;
+            max-width: 500px;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+            transform: translateY(20px);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-overlay.active .modal-card { transform: translateY(0); }
+
+        .modal-header {
+            padding: 1.5rem 1.5rem 1rem;
+            position: relative;
+            color: white;
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 1rem; right: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            width: 28px; height: 28px;
+            border-radius: 10px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+        }
+
+        .modal-body { padding: 1.5rem; }
+        
+        .info-row { margin-bottom: 1.25rem; }
+        .info-label {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+        .info-data {
+            font-size: 0.9rem;
+            font-weight: 500;
+            line-height: 1.5;
+        }
+        
+        /* MOBILE OVERRIDES */
+        @media (max-width: 640px) {
+            :root { --col-width: 80px; }
+            
+            header { padding: 0.5rem 0.75rem; }
+            .header-content h1 { font-size: 1.1rem; }
+            
+            .group-header { width: 100px; padding: 0.5rem; }
+            .grid-spacer { width: 100px; }
+            
+            .modal-card {
+                width: 100%;
+                max-width: none;
+                border-radius: 20px 20px 0 0;
+                position: absolute;
+                bottom: 0;
+                transform: translateY(100%);
+            }
+            .modal-overlay.active .modal-card { transform: translateY(0); }
+            
+            .item { height: 45px; font-size: 0.7rem; border-radius: 8px; }
+            .item-label { left: 110px; line-height: 45px; }
+            .track-area { min-height: 60px; }
+            
+            .drag-indicator { font-size: 0.6rem; padding: 6px 12px; bottom: 10px; }
+        }
+
+        .drag-indicator {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            pointer-events: none;
+            opacity: 0.7;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+    </style>
+</head>
+<body onload="init()">
+
+<header>
+    <div class="header-content">
+        <h1>E3SM AI ROADMAP</h1>
+        <div class="subtitle">2026 STRATEGY & MILESTONES</div>
+    </div>
+    <div class="header-actions">
+        <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle Theme">
+            <i data-feather="moon"></i>
+        </button>
+    </div>
+</header>
+
+<div class="controls">
+    <button class="filter-btn active" id="btn-all" onclick="clearFocus(this)">All Initiatives</button>
+    <button class="filter-btn" id="btn-v3-lr" onclick="focusByClassName('v3-lr', this)">v3 Low-Res</button>
+    <button class="filter-btn" id="btn-v3-hr" onclick="focusByClassName('v3-hr', this)">v3 High-Res</button>
+    <button class="filter-btn" id="btn-v4" onclick="focusByClassName('v4', this)">v4 / OMEGA</button>
+    <button class="filter-btn" id="btn-multi" onclick="focusByClassName('multi', this)">Infrastructure</button>
+</div>
+
+<div class="main-container" id="mainContainer">
+    <div class="timeline-scroll-area" id="scrollArea">
+        <div class="grid-header" id="gridHeader"></div>
+        <div class="swimlane-container" id="swimlanes"></div>
+        <div class="today-marker" id="todayMarker">
+             <div class="today-label">TODAY</div>
+        </div>
+    </div>
+</div>
+
+<div class="drag-indicator">
+    <i data-feather="move" style="width:12px; height:12px;"></i>
+    DRAG TO EXPLORE 2026
+</div>
+
+<!-- INFO MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+    <div class="modal-card" onclick="event.stopPropagation()">
+        <div class="modal-header" id="modalHeaderBg">
+            <button class="modal-close" onclick="closeModal(event)">
+                <i data-feather="x" style="width:18px; height:18px;"></i>
+            </button>
+            <span id="modalGroup" class="modal-tag">Group</span>
+            <h2 id="modalTitle" style="margin:0; font-size:1.6rem; font-weight: 800; letter-spacing: -0.01em;">Title</h2>
+        </div>
+        <div class="modal-body">
+            <div class="info-row">
+                <div class="info-label">Active Period</div>
+                <div id="modalDate" class="info-data"></div>
+            </div>
+            
+            <div class="info-row">
+                <div class="info-label">Stakeholders</div>
+                <div id="modalPeople" class="info-data"></div>
+            </div>
+            
+            <div class="info-row">
+                <div class="info-label">Objectives & Notes</div>
+                <div id="modalNotes" class="info-data"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    feather.replace();
+
+    // DATA INJECTED
+    const roadmapData = [
+    {
+        "id": 1,
+        "title": "Finish Ai2 Training",
+        "group": "v3 LR",
+        "start": 0,
+        "duration": 4,
+        "people": "Elynn, Indu",
+        "notes": "Single-trajectory coupled v3 LR piControl",
+        "className": "v3-lr"
+    },
+    {
+        "id": 2,
+        "title": "Train Near-Historical",
+        "group": "v3 LR",
+        "start": 3,
+        "duration": 4,
+        "people": "Waits on above",
+        "notes": "Single-trajectory coupled v3 LR near-historical run",
+        "className": "v3-lr"
+    },
+    {
+        "id": 3,
+        "title": "Retrain Historical",
+        "group": "v3 LR",
+        "start": 2,
+        "duration": 5,
+        "people": "Olawale, Wuyin",
+        "notes": "Atmosphere-only and coupled v3 LR historical from ensemble",
+        "className": "v3-lr"
+    },
+    {
+        "id": 4,
+        "title": "Rigorously Evaluate",
+        "group": "v3 LR",
+        "start": 0,
+        "duration": 7,
+        "people": "Olawale, Wuyin, Khachik, Naser, Hassan",
+        "notes": "Comparative analysis, variability modes. Transits to v3 HR eval.",
+        "className": "v3-lr"
+    },
+    {
+        "id": 5,
+        "title": "Distributed Backend",
+        "group": "v3 HR",
+        "start": 0,
+        "duration": 4,
+        "people": "Naser, Jeff, Andrew, Peter, Luca",
+        "notes": "Integrate new distributed backend (spatial parallelism)",
+        "className": "v3-hr"
+    },
+    {
+        "id": 6,
+        "title": "Test on v3 HR data",
+        "group": "v3 HR",
+        "start": 0,
+        "duration": 4,
+        "people": "Elynn, Indu, Finn",
+        "notes": "Verify data ingestion and processing",
+        "className": "v3-hr"
+    },
+    {
+        "id": 7,
+        "title": "Train v3 HR config",
+        "group": "v3 HR",
+        "start": 3,
+        "duration": 6,
+        "people": "Team",
+        "notes": "Waits on backend and testing",
+        "className": "v3-hr"
+    },
+    {
+        "id": 8,
+        "title": "Evaluation & Release",
+        "group": "v3 HR",
+        "start": 3,
+        "duration": 9,
+        "people": "Dev/Workflow Team",
+        "notes": "Embed dev team, continuity from v3 LR. Release alongside physics.",
+        "className": "v3-hr"
+    },
+    {
+        "id": 9,
+        "title": "v4 Comp Emulators",
+        "group": "v4",
+        "start": 6,
+        "duration": 6,
+        "people": "Unclear plans",
+        "notes": "Transition to ne256pg2, target OMEGA. Waits on EAMxx/OMEGA.",
+        "className": "v4"
+    },
+    {
+        "id": 10,
+        "title": "v4 Coupled Emulators",
+        "group": "v4",
+        "start": 9,
+        "duration": 3,
+        "people": "Unclear plans",
+        "notes": "Fine-tune emulators. Waits on above.",
+        "className": "v4"
+    },
+    {
+        "id": 11,
+        "title": "FTorch",
+        "group": "Multi-goal",
+        "start": 0,
+        "duration": 4,
+        "people": "Andrew, Jon",
+        "notes": "Fortran-Torch coupling activities",
+        "className": "multi"
+    },
+    {
+        "id": 12,
+        "title": "C++ Emulators",
+        "group": "Multi-goal",
+        "start": 0,
+        "duration": 7,
+        "people": "Naser, Jeff, Luca, Peter, Oscar, Elynn",
+        "notes": "For CIME integration",
+        "className": "multi"
+    },
+    {
+        "id": 13,
+        "title": "Toolchain Integration",
+        "group": "Multi-goal",
+        "start": 0,
+        "duration": 12,
+        "people": "Naser, Jaelyn",
+        "notes": "e3sm_diags, etc.",
+        "className": "multi"
+    },
+    {
+        "id": 14,
+        "title": "Neural R&D",
+        "group": "Multi-goal",
+        "start": 0,
+        "duration": 12,
+        "people": "Indu, Naser, Olawale, Peter",
+        "notes": "Exploring/expanding neural architectures",
+        "className": "multi"
+    }
+];
+    const monthsFull = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const monthsShort = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    
+    // STATE
+    let currentFilter = 'all';
+    let focusedGroup = null;
+    let colWidth = 120; // Default
+
+    function init() {
+        // Theme init
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+
+        updateColWidth();
+        window.addEventListener('resize', () => {
+             updateColWidth();
+             const setVh = () => document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
+             setVh();
+             renderHeader();
+             renderRoadmap(currentFilter);
+        });
+
+        renderHeader();
+        calculateTodayPosition();
+        renderRoadmap('all');
+        setupDragToScroll();
+
+        // VH fix
+        const setVh = () => document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
+        setVh();
+        
+        feather.replace();
+    }
+
+    function updateColWidth() {
+        if (window.innerWidth <= 640) {
+            colWidth = 80;
+            document.documentElement.style.setProperty('--col-width', '80px');
+        } else {
+            colWidth = 120;
+            document.documentElement.style.setProperty('--col-width', '120px');
+        }
+    }
+
+    function renderHeader() {
+        const header = document.getElementById('gridHeader');
+        header.innerHTML = '';
+        const labels = window.innerWidth <= 640 ? monthsShort : monthsFull;
+        labels.forEach(m => {
+            const div = document.createElement('div');
+            div.className = 'month-col';
+            div.textContent = window.innerWidth <= 480 ? m.substring(0, 1) : (window.innerWidth <= 640 ? m : m);
+            header.appendChild(div);
+        });
+    }
+
+    // --- THEME ---
+    function toggleTheme() {
+        const current = document.documentElement.getAttribute('data-theme');
+        const newTheme = current === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        updateThemeIcon(newTheme);
+    }
+
+    function updateThemeIcon(theme) {
+        const btn = document.querySelector('.theme-toggle');
+        btn.innerHTML = theme === 'dark' ? '<i data-feather="sun"></i>' : '<i data-feather="moon"></i>';
+        feather.replace();
+    }
+
+    // --- RENDER ---
+    function renderRoadmap(filter) {
+        currentFilter = filter;
+        const container = document.getElementById('swimlanes');
+        container.innerHTML = '';
+        container.className = 'swimlane-container';
+        focusedGroup = null;
+
+        const groups = {};
+        const groupOrder = ['v3 LR', 'v3 HR', 'v4', 'Multi-goal'];
+        groupOrder.forEach(g => groups[g] = []);
+
+        roadmapData.forEach(item => {
+             // We no longer discard items in focus mode, but keep initial render logic
+             groups[item.group].push(item);
+        });
+
+        for(let gName of groupOrder) {
+            const items = groups[gName];
+            if(!items || items.length === 0) continue;
+
+            const groupDiv = document.createElement('div');
+            groupDiv.className = 'swimlane-group';
+            groupDiv.dataset.group = gName;
+            
+            // Map group name to className for filter button mapping
+            const sampleItem = items[0];
+            groupDiv.dataset.className = sampleItem.className;
+            
+            const gHeader = document.createElement('div');
+            gHeader.className = 'group-header';
+            gHeader.innerHTML = `<span>${gName}</span>`; // Removed icon
+            gHeader.onclick = () => toggleFocus(gName);
+            groupDiv.appendChild(gHeader);
+
+            const track = document.createElement('div');
+            track.className = 'track-area';
+            
+            const levels = [];
+            items.forEach((item, idx) => {
+                 const el = document.createElement('div');
+                 el.className = `item ${item.className}`;
+                 el.innerHTML = `<span class="item-label">${item.title}</span>`;
+                 el.style.left = `${item.start * colWidth}px`;
+                 el.style.width = `${item.duration * colWidth - 8}px`;
+                 
+                 el.style.animationDelay = `${idx * 0.05}s`;
+                 
+                 let level = 0;
+                 while(true) {
+                     if(!levels[level]) levels[level] = [];
+                     const collision = levels[level].some(p => 
+                        (item.start < p.end) && ((item.start + item.duration) > p.start)
+                     );
+                     if(!collision) break;
+                     level++;
+                 }
+                 if(!levels[level]) levels[level] = [];
+                 levels[level].push({start: item.start, end: item.start + item.duration});
+                 
+                 const rowHeight = window.innerWidth <= 640 ? 55 : 50;
+                 el.style.top = `${10 + (level * rowHeight)}px`;
+                 el.onclick = (e) => { e.stopPropagation(); openModal(item); };
+                 track.appendChild(el);
+            });
+            
+            const maxLevel = levels.length;
+            const rowHeight = window.innerWidth <= 640 ? 55 : 50;
+            track.style.height = `${Math.max(window.innerWidth <= 640 ? 70 : 80, (maxLevel * rowHeight) + 20)}px`;
+            
+            groupDiv.appendChild(track);
+            container.appendChild(groupDiv);
+        }
+        feather.replace();
+    }
+
+    // --- INTERACTIVITY ---
+    function toggleFocus(groupName) {
+        const container = document.getElementById('swimlanes');
+        const groups = document.querySelectorAll('.swimlane-group');
+
+        if(focusedGroup === groupName) {
+            clearFocus();
+        } else {
+            container.classList.add('focus-mode');
+            groups.forEach(g => {
+                if(g.dataset.group === groupName) {
+                    g.classList.add('focused');
+                    // Update active button
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    const btn = document.getElementById(`btn-${g.dataset.className}`);
+                    if(btn) btn.classList.add('active');
+                }
+                else g.classList.remove('focused');
+            });
+            focusedGroup = groupName;
+        }
+    }
+
+    function clearFocus(btn) {
+        const container = document.getElementById('swimlanes');
+        const groups = document.querySelectorAll('.swimlane-group');
+        container.classList.remove('focus-mode');
+        groups.forEach(g => g.classList.remove('focused'));
+        focusedGroup = null;
+        
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        if(btn) btn.classList.add('active');
+        else document.getElementById('btn-all').classList.add('active');
+    }
+
+    function focusByClassName(className, btn) {
+        const groups = document.querySelectorAll('.swimlane-group');
+        let targetGroupName = null;
+        groups.forEach(g => {
+            if(g.dataset.className === className) targetGroupName = g.dataset.group;
+        });
+        
+        if(targetGroupName) toggleFocus(targetGroupName);
+    }
+
+    function calculateTodayPosition() {
+        const now = new Date();
+        now.setFullYear(2026); 
+        const start = new Date(2026, 0, 1); 
+        const dayOfYear = (now - start) / (1000 * 60 * 60 * 24);
+        const percent = dayOfYear / 365;
+        const totalPixels = 12 * colWidth;
+        
+        const marker = document.getElementById('todayMarker');
+        if(marker && percent >= 0 && percent <= 1) {
+            marker.style.left = `${percent * totalPixels}px`;
+            
+            // Auto scroll to today on load
+            setTimeout(() => {
+                const scrollArea = document.getElementById('scrollArea');
+                const center = scrollArea.clientWidth / 2;
+                scrollArea.scrollTo({ left: (percent * totalPixels) - center, behavior: 'smooth' });
+            }, 800);
+        }
+    }
+
+    function setFilter(filter, btn) {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderRoadmap(filter);
+        
+        // Ensure button is visible in scroll container
+        btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+
+    function openModal(item) {
+        const overlay = document.getElementById('modalOverlay');
+        document.getElementById('modalTitle').textContent = item.title;
+        document.getElementById('modalGroup').textContent = item.group;
+        document.getElementById('modalNotes').textContent = item.notes;
+        document.getElementById('modalPeople').textContent = item.people;
+        
+        const startM = monthsFull[item.start];
+        const endM = monthsFull[item.start + item.duration - 1] || 'December';
+        document.getElementById('modalDate').textContent = `${startM} - ${endM} 2026`;
+        
+        const colors = { 
+            'v3 LR': ['#3b82f6', '#1d4ed8'], 
+            'v3 HR': ['#8b5cf6', '#5b21b6'], 
+            'v4': ['#f59e0b', '#b45309'], 
+            'Multi-goal': ['#10b981', '#047857'] 
+        };
+        const c = colors[item.group] || ['#777', '#555'];
+        document.getElementById('modalHeaderBg').style.background = `linear-gradient(135deg, ${c[0]}, ${c[1]})`;
+
+        overlay.classList.add('active');
+    }
+
+    function closeModal(e) {
+        if(e) e.stopPropagation();
+        document.getElementById('modalOverlay').classList.remove('active');
+    }
+
+    // --- DRAG TO SCROLL ---
+    function setupDragToScroll() {
+        const slider = document.getElementById('scrollArea');
+        let isDown = false;
+        let startX;
+        let scrollLeft;
+
+        slider.addEventListener('mousedown', (e) => {
+            isDown = true;
+            slider.style.cursor = 'grabbing';
+            startX = e.pageX - slider.offsetLeft;
+            scrollLeft = slider.scrollLeft;
+        });
+
+        slider.addEventListener('mouseleave', () => {
+            isDown = false;
+            slider.style.cursor = 'auto';
+        });
+
+        slider.addEventListener('mouseup', () => {
+            isDown = false;
+            slider.style.cursor = 'auto';
+        });
+
+        slider.addEventListener('mousemove', (e) => {
+            if(!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - slider.offsetLeft;
+            const walk = (x - startX) * 1.5; 
+            slider.scrollLeft = scrollLeft - walk;
+        });
+        
+        // Close modal on escape
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+    }
+
+    init();
+</script>
+</body>
+</html>
