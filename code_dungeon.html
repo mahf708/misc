@@ -1,0 +1,1732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!--
+    CODE DUNGEON — An Educational Roguelike Game
+    =============================================
+    A turn-based dungeon crawler where you fight programming bugs
+    by solving code challenges. Each floor teaches a new concept.
+
+    Tech: Pure HTML + CSS + JavaScript. No dependencies.
+    Works on: Any modern browser (Safari, Chrome, Firefox)
+    Controls: Keyboard (arrows/WASD) or touch (tap/swipe/D-pad)
+
+    The code itself is meant to be educational — read through it
+    to learn about CSS Grid layouts, responsive design, game state
+    machines, procedural generation, and event handling patterns.
+  -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Code Dungeon</title>
+  <style>
+    /* ===========================================
+       CSS CUSTOM PROPERTIES (Design Tokens)
+       Using :root variables makes theming easy
+       and keeps magic numbers in one place.
+       =========================================== */
+    :root {
+      --bg-primary: #1a1a2e;
+      --bg-secondary: #16213e;
+      --bg-panel: #0f3460;
+      --text-primary: #e8e8e8;
+      --text-secondary: #a8a8b8;
+      --text-accent: #00d4ff;
+      --color-health: #ff4757;
+      --color-success: #2ed573;
+      --color-warning: #ffa502;
+      --color-danger: #ff6b6b;
+      --color-xp: #7c4dff;
+      --tile-size: min(9vw, 56px);
+      --tile-gap: 2px;
+      --radius: 8px;
+      --font-mono: 'Courier New', Courier, monospace;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    /* ===========================================
+       RESET & BASE STYLES
+       Mobile-first approach: default styles target
+       small screens, then @media queries add
+       desktop enhancements.
+       =========================================== */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: var(--font-mono);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      overflow: hidden;
+      height: 100vh;
+      height: 100dvh; /* Dynamic viewport height — accounts for mobile browser chrome */
+      -webkit-tap-highlight-color: transparent;
+      overscroll-behavior: none; /* Prevents pull-to-refresh interference */
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    /* ===========================================
+       GAME CONTAINER
+       Flexbox column layout stacks HUD, map,
+       and panels vertically on mobile.
+       =========================================== */
+    #game-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    /* ===========================================
+       HUD (Heads-Up Display)
+       Shows health, floor number, and score.
+       position: sticky keeps it visible while
+       the content below may scroll.
+       =========================================== */
+    #hud {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      background: var(--bg-secondary);
+      border-bottom: 2px solid var(--bg-panel);
+      flex-shrink: 0;
+      z-index: 10;
+    }
+
+    .hud-title {
+      font-size: 14px;
+      color: var(--text-accent);
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    .hud-stats {
+      display: flex;
+      gap: 12px;
+      font-size: 13px;
+    }
+
+    .health-bar {
+      display: flex;
+      gap: 2px;
+      align-items: center;
+    }
+
+    .heart { font-size: 14px; }
+    .heart.full { color: var(--color-health); }
+    .heart.empty { color: #444; }
+
+    .hud-floor, .hud-score {
+      color: var(--text-secondary);
+    }
+
+    .hud-score span { color: var(--color-xp); }
+    .hud-floor span { color: var(--text-accent); }
+
+    /* ===========================================
+       MAIN GAME AREA
+       On mobile: map takes remaining vertical space.
+       On desktop: splits into map + side panel.
+       =========================================== */
+    #game-area {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* ===========================================
+       DUNGEON MAP
+       CSS Grid creates the tile-based map.
+       Each cell is a div with an emoji sprite.
+       This is simpler than <canvas> and gives us
+       free tap targets + CSS transitions.
+       =========================================== */
+    #map-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+      min-height: 0; /* Flex child needs this to shrink properly */
+    }
+
+    #map {
+      display: grid;
+      grid-template-columns: repeat(9, var(--tile-size));
+      grid-template-rows: repeat(9, var(--tile-size));
+      gap: var(--tile-gap);
+      touch-action: manipulation; /* Eliminates 300ms tap delay on iOS */
+    }
+
+    /* --- Tile Styles --- */
+    .tile {
+      width: var(--tile-size);
+      height: var(--tile-size);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: calc(var(--tile-size) * 0.55);
+      border-radius: 4px;
+      transition: opacity 0.3s ease, background 0.2s ease;
+      cursor: pointer;
+      position: relative;
+    }
+
+    /* Fog of war — unexplored tiles are hidden */
+    .tile.fog {
+      background: #111;
+      opacity: 0.3;
+    }
+
+    .tile.floor {
+      background: #2a2a4a;
+    }
+
+    .tile.wall {
+      background: #3a3a5a;
+      cursor: default;
+    }
+
+    .tile.floor:hover { background: #3a3a6a; }
+
+    .tile.player {
+      background: #2a4a6a;
+      animation: playerPulse 2s infinite;
+    }
+
+    .tile.bug {
+      background: #4a2a2a;
+    }
+
+    .tile.item {
+      background: #2a4a2a;
+    }
+
+    .tile.stairs {
+      background: #4a4a2a;
+    }
+
+    .tile.entrance {
+      background: #2a3a4a;
+    }
+
+    @keyframes playerPulse {
+      0%, 100% { box-shadow: 0 0 4px rgba(0, 212, 255, 0.3); }
+      50% { box-shadow: 0 0 12px rgba(0, 212, 255, 0.6); }
+    }
+
+    /* Damage flash animation */
+    @keyframes damageShake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      75% { transform: translateX(4px); }
+    }
+
+    .shake {
+      animation: damageShake 0.3s ease;
+    }
+
+    @keyframes pickupGlow {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.3); }
+      100% { transform: scale(1); opacity: 0; }
+    }
+
+    .pickup-anim {
+      animation: pickupGlow 0.4s ease forwards;
+    }
+
+    /* ===========================================
+       COMBAT PANEL
+       Slides up from the bottom on mobile (like
+       a bottom sheet). Shows code challenge and
+       answer choices during bug encounters.
+       =========================================== */
+    #combat-panel {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--bg-secondary);
+      border-top: 3px solid var(--text-accent);
+      padding: 16px;
+      padding-bottom: calc(16px + var(--safe-bottom));
+      transform: translateY(100%);
+      transition: transform 0.3s ease;
+      z-index: 20;
+      max-height: 70%;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    #combat-panel.active {
+      transform: translateY(0);
+    }
+
+    .combat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .bug-name {
+      font-size: 16px;
+      color: var(--color-danger);
+      font-weight: bold;
+    }
+
+    .bug-hp {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .challenge-type {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-accent);
+      margin-bottom: 8px;
+    }
+
+    .challenge-prompt {
+      font-size: 13px;
+      color: var(--text-primary);
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+
+    /* Code block styling */
+    .code-block {
+      background: #0a0a1a;
+      border: 1px solid #333;
+      border-radius: var(--radius);
+      padding: 12px;
+      margin-bottom: 12px;
+      font-size: 12px;
+      line-height: 1.6;
+      overflow-x: auto;
+      white-space: pre;
+      color: #ddd;
+    }
+
+    /* Answer buttons — min 44x44px for Apple HIG touch targets */
+    .choices {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .choice-btn {
+      background: var(--bg-panel);
+      border: 2px solid #444;
+      border-radius: var(--radius);
+      color: var(--text-primary);
+      padding: 12px 16px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      text-align: left;
+      cursor: pointer;
+      min-height: 44px; /* Apple HIG minimum touch target */
+      transition: border-color 0.2s, background 0.2s;
+      touch-action: manipulation;
+    }
+
+    .choice-btn:hover { border-color: var(--text-accent); }
+    .choice-btn:active { background: #1a4a7a; }
+
+    .choice-btn.correct {
+      border-color: var(--color-success);
+      background: rgba(46, 213, 115, 0.15);
+    }
+
+    .choice-btn.wrong {
+      border-color: var(--color-danger);
+      background: rgba(255, 75, 75, 0.15);
+    }
+
+    .choice-btn:disabled {
+      cursor: default;
+      opacity: 0.7;
+    }
+
+    .explanation {
+      margin-top: 12px;
+      padding: 10px;
+      background: rgba(0, 212, 255, 0.08);
+      border-left: 3px solid var(--text-accent);
+      font-size: 12px;
+      line-height: 1.5;
+      color: var(--text-secondary);
+      display: none;
+    }
+
+    .explanation.visible { display: block; }
+
+    .combat-continue {
+      margin-top: 12px;
+      padding: 10px 20px;
+      background: var(--text-accent);
+      color: var(--bg-primary);
+      border: none;
+      border-radius: var(--radius);
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      display: none;
+      min-height: 44px;
+      touch-action: manipulation;
+    }
+
+    .combat-continue.visible { display: block; }
+
+    /* ===========================================
+       INFO PANEL — shows messages and concept log
+       =========================================== */
+    #info-bar {
+      background: var(--bg-secondary);
+      padding: 8px 12px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      text-align: center;
+      flex-shrink: 0;
+      min-height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-top: 1px solid #333;
+    }
+
+    /* ===========================================
+       D-PAD (Touch Controls)
+       Virtual directional pad for mobile devices.
+       Uses CSS Grid for a clean cross layout.
+       Only visible on touch-capable devices.
+       =========================================== */
+    #dpad {
+      display: none; /* Hidden by default, shown via JS on touch devices */
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      z-index: 15;
+      opacity: 0.6;
+      padding-bottom: var(--safe-bottom);
+    }
+
+    #dpad.visible { display: grid; }
+
+    #dpad {
+      grid-template-columns: 48px 48px 48px;
+      grid-template-rows: 48px 48px 48px;
+      gap: 4px;
+    }
+
+    .dpad-btn {
+      width: 48px;
+      height: 48px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      color: white;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .dpad-btn:active { background: rgba(255, 255, 255, 0.25); }
+
+    .dpad-up    { grid-column: 2; grid-row: 1; }
+    .dpad-left  { grid-column: 1; grid-row: 2; }
+    .dpad-center{ grid-column: 2; grid-row: 2; background: transparent; border: none; }
+    .dpad-right { grid-column: 3; grid-row: 2; }
+    .dpad-down  { grid-column: 2; grid-row: 3; }
+
+    /* ===========================================
+       OVERLAY SCREENS (Title, Game Over, Victory,
+       Floor Summary)
+       Centered fullscreen overlays using flexbox.
+       =========================================== */
+    .screen-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(10, 10, 20, 0.95);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .screen-overlay.active {
+      display: flex;
+    }
+
+    .screen-title {
+      font-size: clamp(28px, 6vw, 48px);
+      color: var(--text-accent);
+      margin-bottom: 8px;
+      letter-spacing: 2px;
+    }
+
+    .screen-subtitle {
+      font-size: clamp(14px, 3vw, 18px);
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+      max-width: 400px;
+      line-height: 1.5;
+    }
+
+    .screen-btn {
+      padding: 14px 32px;
+      background: var(--text-accent);
+      color: var(--bg-primary);
+      border: none;
+      border-radius: var(--radius);
+      font-family: var(--font-mono);
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      min-height: 48px;
+      touch-action: manipulation;
+      margin-top: 8px;
+    }
+
+    .screen-btn:hover { opacity: 0.9; }
+    .screen-btn:active { transform: scale(0.97); }
+
+    .screen-emoji {
+      font-size: clamp(48px, 10vw, 80px);
+      margin-bottom: 16px;
+    }
+
+    .summary-concepts {
+      text-align: left;
+      margin: 16px 0;
+      max-width: 400px;
+    }
+
+    .summary-concepts li {
+      color: var(--text-secondary);
+      font-size: 13px;
+      margin-bottom: 8px;
+      line-height: 1.4;
+      list-style: none;
+    }
+
+    .summary-concepts li::before {
+      content: '✓ ';
+      color: var(--color-success);
+    }
+
+    .final-score {
+      font-size: 20px;
+      color: var(--color-xp);
+      margin: 12px 0;
+    }
+
+    /* ===========================================
+       DESKTOP LAYOUT (side panel)
+       On wider screens, the combat/info panel
+       appears beside the map instead of over it.
+       =========================================== */
+    @media (min-width: 768px) {
+      #game-area {
+        flex-direction: row;
+      }
+
+      #map-container {
+        flex: none;
+        width: 60%;
+      }
+
+      #combat-panel {
+        position: relative;
+        transform: none;
+        width: 40%;
+        max-height: none;
+        border-top: none;
+        border-left: 3px solid var(--text-accent);
+        overflow-y: auto;
+        display: none;
+      }
+
+      #combat-panel.active {
+        display: block;
+        transform: none;
+      }
+
+      :root {
+        --tile-size: min(7vw, 60px);
+      }
+    }
+
+    /* Small phone adjustments */
+    @media (max-height: 600px) {
+      :root { --tile-size: min(8vw, 44px); }
+      #hud { padding: 4px 8px; }
+      .hud-title { font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- ===========================================
+       HTML STRUCTURE
+       The game UI is built from semantic sections.
+       JavaScript toggles visibility via CSS classes.
+       =========================================== -->
+  <div id="game-container">
+    <!-- HUD — always visible during gameplay -->
+    <div id="hud">
+      <div class="hud-title">CODE DUNGEON</div>
+      <div class="hud-stats">
+        <div class="health-bar" id="health-bar"></div>
+        <div class="hud-floor">F:<span id="floor-num">1</span>/5</div>
+        <div class="hud-score">XP:<span id="score">0</span></div>
+      </div>
+    </div>
+
+    <!-- Main game area (map + combat panel) -->
+    <div id="game-area">
+      <div id="map-container">
+        <div id="map"></div>
+      </div>
+
+      <!-- Combat panel — appears during bug encounters -->
+      <div id="combat-panel">
+        <div class="combat-header">
+          <div class="bug-name" id="bug-name">🐛 Bug</div>
+          <div class="bug-hp" id="bug-hp">HP: 1/1</div>
+        </div>
+        <div class="challenge-type" id="challenge-type">Fix the Bug</div>
+        <div class="challenge-prompt" id="challenge-prompt"></div>
+        <div class="code-block" id="code-block"></div>
+        <div class="choices" id="choices"></div>
+        <div class="explanation" id="explanation"></div>
+        <button class="combat-continue" id="combat-continue">Continue →</button>
+      </div>
+
+      <!-- Touch D-pad -->
+      <div id="dpad">
+        <button class="dpad-btn dpad-up" data-dir="up">▲</button>
+        <button class="dpad-btn dpad-left" data-dir="left">◀</button>
+        <div class="dpad-center"></div>
+        <button class="dpad-btn dpad-right" data-dir="right">▶</button>
+        <button class="dpad-btn dpad-down" data-dir="down">▼</button>
+      </div>
+    </div>
+
+    <!-- Info bar — contextual messages -->
+    <div id="info-bar">Use arrow keys or tap to move. Find the stairs to descend!</div>
+
+    <!-- SCREEN OVERLAYS -->
+    <!-- Title Screen -->
+    <div class="screen-overlay active" id="title-screen">
+      <div class="screen-emoji">🧑‍💻</div>
+      <div class="screen-title">CODE DUNGEON</div>
+      <div class="screen-subtitle">
+        You've been pulled inside a buggy codebase! Navigate 5 floors,
+        defeat programming bugs by solving challenges, and learn to code
+        along the way.
+      </div>
+      <button class="screen-btn" id="start-btn">Start Game</button>
+      <div style="margin-top:16px;font-size:11px;color:#666">
+        Arrow keys / WASD / Tap to move &nbsp;|&nbsp; 1-2-3 to answer
+      </div>
+    </div>
+
+    <!-- Floor Summary Screen -->
+    <div class="screen-overlay" id="summary-screen">
+      <div class="screen-emoji" id="summary-emoji">📚</div>
+      <div class="screen-title" id="summary-title">Floor Clear!</div>
+      <div class="screen-subtitle" id="summary-subtitle"></div>
+      <ul class="summary-concepts" id="summary-concepts"></ul>
+      <button class="screen-btn" id="next-floor-btn">Next Floor →</button>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div class="screen-overlay" id="gameover-screen">
+      <div class="screen-emoji">💀</div>
+      <div class="screen-title">GAME OVER</div>
+      <div class="screen-subtitle">The bugs got the better of you this time. But every failure is a lesson!</div>
+      <div class="final-score" id="gameover-score">Score: 0</div>
+      <button class="screen-btn" id="retry-btn">Try Again</button>
+    </div>
+
+    <!-- Victory Screen -->
+    <div class="screen-overlay" id="victory-screen">
+      <div class="screen-emoji">🏆</div>
+      <div class="screen-title">VICTORY!</div>
+      <div class="screen-subtitle">You've debugged the entire codebase! You've learned about variables, conditionals, loops, functions, and data structures.</div>
+      <div class="final-score" id="victory-score">Score: 0</div>
+      <button class="screen-btn" id="replay-btn">Play Again</button>
+    </div>
+  </div>
+
+  <script>
+    /* ===========================================
+       SECTION 1: GAME DATA
+       All content is defined here as plain objects
+       and arrays. This makes it easy to add new
+       challenges or modify existing ones.
+       =========================================== */
+
+    /**
+     * FLOOR THEMES — Each floor focuses on one programming concept.
+     * The "summary" field is shown between floors to reinforce learning.
+     */
+    const FLOORS = [
+      {
+        level: 1,
+        name: 'Variables & Types',
+        emoji: '📦',
+        bugCount: 2,
+        itemCount: 1,
+        summary: [
+          'Variables store data using let, const, or var',
+          'JavaScript types include: string, number, boolean, undefined, null',
+          'The + operator concatenates strings but adds numbers',
+          'typeof tells you what type a value is'
+        ]
+      },
+      {
+        level: 2,
+        name: 'Conditionals',
+        emoji: '🔀',
+        bugCount: 2,
+        itemCount: 1,
+        summary: [
+          'if/else lets code make decisions based on conditions',
+          '=== checks value AND type (strict equality)',
+          '== checks value only (loose equality, can be surprising)',
+          'Logical operators: && (and), || (or), ! (not)'
+        ]
+      },
+      {
+        level: 3,
+        name: 'Loops',
+        emoji: '🔄',
+        bugCount: 3,
+        itemCount: 1,
+        summary: [
+          'for loops repeat code a specific number of times',
+          'while loops repeat until a condition is false',
+          'Off-by-one errors: < vs <= changes the count by 1',
+          'Infinite loops happen when the exit condition is never met'
+        ]
+      },
+      {
+        level: 4,
+        name: 'Functions',
+        emoji: '⚙️',
+        bugCount: 3,
+        itemCount: 2,
+        summary: [
+          'Functions are reusable blocks of code',
+          'Parameters are inputs; return sends back a result',
+          'Scope: variables inside a function are local to it',
+          'Arrow functions are a shorthand: (x) => x * 2'
+        ]
+      },
+      {
+        level: 5,
+        name: 'Arrays & Objects',
+        emoji: '🗃️',
+        bugCount: 3,
+        itemCount: 2,
+        summary: [
+          'Arrays hold ordered lists: [1, 2, 3]',
+          'Objects hold key-value pairs: { name: "Ada" }',
+          '.push() adds to end, .pop() removes from end',
+          '.map(), .filter(), .reduce() transform arrays without mutation'
+        ]
+      }
+    ];
+
+    /**
+     * BUG TYPES — Each has a name, emoji, and HP.
+     * Bug names are real programming error types!
+     */
+    const BUG_TYPES = {
+      1: [
+        { name: 'UndefinedVar', emoji: '🐛', hp: 1 },
+        { name: 'TypeMismatch', emoji: '🦗', hp: 1 }
+      ],
+      2: [
+        { name: 'LogicFlaw', emoji: '🕷️', hp: 1 },
+        { name: 'OffByOne', emoji: '🐜', hp: 2 }
+      ],
+      3: [
+        { name: 'InfiniteLoop', emoji: '🦠', hp: 2 },
+        { name: 'FencepostError', emoji: '🐛', hp: 2 },
+        { name: 'OffByOne', emoji: '🐜', hp: 2 }
+      ],
+      4: [
+        { name: 'StackOverflow', emoji: '🕷️', hp: 2 },
+        { name: 'ScopeCreep', emoji: '🦗', hp: 2 },
+        { name: 'SideEffect', emoji: '🦠', hp: 3 }
+      ],
+      5: [
+        { name: 'IndexOutOfBounds', emoji: '🐛', hp: 2 },
+        { name: 'NullReference', emoji: '🦠', hp: 3 },
+        { name: 'MutationBug', emoji: '🐜', hp: 3 }
+      ]
+    };
+
+    /**
+     * CODE CHALLENGES — The heart of the game!
+     * Each challenge has:
+     *   type: "fix" | "fill" | "predict"
+     *   code: the code snippet shown to the player
+     *   prompt: the question text
+     *   choices: array of 3 answer options
+     *   correct: index (0-2) of the right answer
+     *   explanation: shown after answering — this is where learning happens
+     */
+    const CHALLENGES = {
+      1: [ // Variables & Types
+        {
+          type: 'predict',
+          code: 'let x = "5";\nlet y = x + 3;\nconsole.log(y);',
+          prompt: 'What does this code print?',
+          choices: ['8', '"53"', 'Error'],
+          correct: 1,
+          explanation: 'When you use + with a string and a number, JavaScript converts the number to a string and concatenates them. "5" + 3 becomes "53".'
+        },
+        {
+          type: 'fix',
+          code: 'const greeting = "Hello";\ngreeting = "Hi";\nconsole.log(greeting);',
+          prompt: 'This code throws an error. How do you fix it?',
+          choices: ['Change const to let', 'Add var before the second line', 'Remove the semicolons'],
+          correct: 0,
+          explanation: 'const declares a constant — it cannot be reassigned. Use let for variables that need to change, and const for values that should stay the same.'
+        },
+        {
+          type: 'predict',
+          code: 'let a = 10;\nlet b = "10";\nconsole.log(typeof a === typeof b);',
+          prompt: 'What does this code print?',
+          choices: ['true', 'false', 'Error'],
+          correct: 1,
+          explanation: 'typeof a is "number" and typeof b is "string". They are different types, so the comparison returns false. Always be aware of your variable types!'
+        },
+        {
+          type: 'fill',
+          code: 'let name = "Ada";\nlet age = 36;\nlet msg = name + " is " + ___ + " years old";',
+          prompt: 'Fill in the blank to complete the message:',
+          choices: ['"age"', 'age', '${age}'],
+          correct: 1,
+          explanation: 'Using the variable name age (without quotes) inserts its value. "age" would insert the literal string "age". Template literals use ${age} but require backticks.'
+        }
+      ],
+      2: [ // Conditionals
+        {
+          type: 'predict',
+          code: 'let x = 0;\nif (x) {\n  console.log("truthy");\n} else {\n  console.log("falsy");\n}',
+          prompt: 'What does this code print?',
+          choices: ['"truthy"', '"falsy"', 'Error'],
+          correct: 1,
+          explanation: 'In JavaScript, 0 is "falsy" — it evaluates to false in a boolean context. Other falsy values: "", null, undefined, NaN, false.'
+        },
+        {
+          type: 'fix',
+          code: 'let age = 18;\nif (age = 21) {\n  console.log("Can drink");\n}',
+          prompt: 'This always prints "Can drink" regardless of age. Why?',
+          choices: ['Change = to ===', 'Change = to >=', 'Wrap age in parentheses'],
+          correct: 0,
+          explanation: 'A single = is assignment, not comparison! age = 21 sets age to 21 (truthy), so the if-block always runs. Use === for strict equality comparison.'
+        },
+        {
+          type: 'predict',
+          code: 'let a = "1";\nlet b = 1;\nconsole.log(a == b);\nconsole.log(a === b);',
+          prompt: 'What do these two comparisons print?',
+          choices: ['true, true', 'true, false', 'false, false'],
+          correct: 1,
+          explanation: '== (loose equality) converts types before comparing, so "1" == 1 is true. === (strict equality) checks type AND value, so "1" === 1 is false. Prefer === to avoid surprises!'
+        },
+        {
+          type: 'fill',
+          code: 'let score = 85;\nlet grade;\nif (score >= 90) {\n  grade = "A";\n} ___ (score >= 80) {\n  grade = "B";\n}',
+          prompt: 'Fill in the blank for the second condition:',
+          choices: ['if', 'else if', 'else'],
+          correct: 1,
+          explanation: 'else if adds another condition to check when the first if is false. Plain if would be a separate check (grade could be overwritten). else has no condition.'
+        }
+      ],
+      3: [ // Loops
+        {
+          type: 'predict',
+          code: 'let sum = 0;\nfor (let i = 1; i <= 5; i++) {\n  sum += i;\n}\nconsole.log(sum);',
+          prompt: 'What does this code print?',
+          choices: ['10', '15', '5'],
+          correct: 1,
+          explanation: 'The loop adds 1+2+3+4+5 = 15. i starts at 1 and runs while i <= 5. Each iteration adds the current value of i to sum.'
+        },
+        {
+          type: 'fix',
+          code: 'let i = 0;\nwhile (i < 5) {\n  console.log(i);\n}',
+          prompt: 'This loop never ends! How do you fix it?',
+          choices: ['Add i++ inside the loop', 'Change < to <=', 'Change let to const'],
+          correct: 0,
+          explanation: 'Without i++, the variable i stays at 0 forever, so i < 5 is always true. This is an infinite loop! Always make sure your loop variable moves toward the exit condition.'
+        },
+        {
+          type: 'predict',
+          code: 'for (let i = 0; i < 3; i++) {\n  for (let j = 0; j < 2; j++) {\n    // runs here\n  }\n}\n// How many times does the inner code run?',
+          prompt: 'How many times does the inner loop body execute?',
+          choices: ['3', '5', '6'],
+          correct: 2,
+          explanation: 'The outer loop runs 3 times (i=0,1,2). For each outer iteration, the inner loop runs 2 times (j=0,1). Total: 3 × 2 = 6. Nested loops multiply!'
+        },
+        {
+          type: 'fill',
+          code: 'let arr = [10, 20, 30];\nfor (let i = 0; i ___ arr.length; i++) {\n  console.log(arr[i]);\n}',
+          prompt: 'Fill in the blank to iterate through the entire array without going out of bounds:',
+          choices: ['<', '<=', '!='],
+          correct: 0,
+          explanation: 'Array indices go from 0 to length-1. Using < arr.length stops at the last valid index. Using <= would try to access arr[3] which is undefined — a classic off-by-one error!'
+        },
+        {
+          type: 'predict',
+          code: 'let count = 0;\nfor (let i = 10; i > 0; i -= 3) {\n  count++;\n}\nconsole.log(count);',
+          prompt: 'What does this code print?',
+          choices: ['3', '4', '10'],
+          correct: 1,
+          explanation: 'i starts at 10 and decreases by 3: 10→7→4→1→(-2 stops). That is 4 iterations where i > 0. Loops can count down and use any step size!'
+        }
+      ],
+      4: [ // Functions
+        {
+          type: 'predict',
+          code: 'function add(a, b) {\n  return a + b;\n}\nconsole.log(add(3, 4));',
+          prompt: 'What does this code print?',
+          choices: ['7', '"34"', 'undefined'],
+          correct: 0,
+          explanation: 'The function add takes two parameters and returns their sum. add(3, 4) passes numbers, so 3 + 4 = 7. Functions package reusable logic!'
+        },
+        {
+          type: 'fix',
+          code: 'function double(x) {\n  x * 2;\n}\nconsole.log(double(5));',
+          prompt: 'This prints undefined instead of 10. How do you fix it?',
+          choices: ['Add return before x * 2', 'Change x * 2 to x = x * 2', 'Add console.log inside'],
+          correct: 0,
+          explanation: 'Without the return keyword, the function computes x * 2 but discards the result. A function returns undefined by default. Always use return to send a value back!'
+        },
+        {
+          type: 'predict',
+          code: 'let x = "outer";\nfunction test() {\n  let x = "inner";\n  return x;\n}\nconsole.log(test());\nconsole.log(x);',
+          prompt: 'What does this code print (two lines)?',
+          choices: ['"inner" then "inner"', '"inner" then "outer"', '"outer" then "outer"'],
+          correct: 1,
+          explanation: 'The x inside the function is a separate local variable (different scope). Changing it does not affect the outer x. This is called "scope" — variables live within their block.'
+        },
+        {
+          type: 'fill',
+          code: 'const greet = ___ => "Hello, " + name;\nconsole.log(greet("Ada"));',
+          prompt: 'Fill in the blank to create an arrow function:',
+          choices: ['(name)', 'function(name)', '{name}'],
+          correct: 0,
+          explanation: 'Arrow functions use the syntax (params) => expression. They are a concise way to write functions. The => "arrow" replaces the function keyword.'
+        },
+        {
+          type: 'predict',
+          code: 'function mystery(n) {\n  if (n <= 1) return 1;\n  return n * mystery(n - 1);\n}\nconsole.log(mystery(4));',
+          prompt: 'What does mystery(4) return?',
+          choices: ['4', '10', '24'],
+          correct: 2,
+          explanation: 'This is recursion! mystery(4) = 4 × mystery(3) = 4 × 3 × mystery(2) = 4 × 3 × 2 × mystery(1) = 4 × 3 × 2 × 1 = 24. This is the factorial function!'
+        }
+      ],
+      5: [ // Arrays & Objects
+        {
+          type: 'predict',
+          code: 'let arr = [1, 2, 3, 4, 5];\nconsole.log(arr.filter(x => x > 3));',
+          prompt: 'What does this code print?',
+          choices: ['[4, 5]', '[1, 2, 3]', '2'],
+          correct: 0,
+          explanation: '.filter() creates a new array with only the elements that pass the test. x > 3 is true for 4 and 5, so the result is [4, 5]. The original array is unchanged!'
+        },
+        {
+          type: 'fix',
+          code: 'let user = { name: "Ada", age: 36 };\nconsole.log(user.email);',
+          prompt: 'This prints undefined. What is the safest way to handle this?',
+          choices: ['Use user.email ?? "N/A"', 'Use user[email]', 'Use user.get("email")'],
+          correct: 0,
+          explanation: 'The ?? (nullish coalescing) operator provides a fallback when a value is null or undefined. user.email ?? "N/A" returns "N/A" since email does not exist on the object.'
+        },
+        {
+          type: 'predict',
+          code: 'let nums = [1, 2, 3];\nlet doubled = nums.map(n => n * 2);\nconsole.log(doubled);\nconsole.log(nums);',
+          prompt: 'What does this code print?',
+          choices: ['[2,4,6] then [2,4,6]', '[2,4,6] then [1,2,3]', '[1,2,3] then [2,4,6]'],
+          correct: 1,
+          explanation: '.map() creates a NEW array with each element transformed. It does not mutate the original. This is called an "immutable" operation — safer and more predictable!'
+        },
+        {
+          type: 'fill',
+          code: 'let colors = ["red", "green", "blue"];\ncolors.___("yellow");\n// colors is now ["red", "green", "blue", "yellow"]',
+          prompt: 'Which method adds "yellow" to the end?',
+          choices: ['push', 'unshift', 'splice'],
+          correct: 0,
+          explanation: '.push() adds elements to the end of an array. .unshift() adds to the beginning. .splice() can insert anywhere but is more complex. push/pop work on the end, shift/unshift on the start.'
+        },
+        {
+          type: 'predict',
+          code: 'let obj = { a: 1, b: 2, c: 3 };\nlet keys = Object.keys(obj);\nconsole.log(keys.length);',
+          prompt: 'What does this code print?',
+          choices: ['3', '6', 'undefined'],
+          correct: 0,
+          explanation: 'Object.keys() returns an array of the object\'s property names: ["a", "b", "c"]. That array has 3 elements. Object.values() would return [1, 2, 3] and Object.entries() returns pairs.'
+        },
+        {
+          type: 'predict',
+          code: 'let arr = [1, 2, 3, 4];\nlet sum = arr.reduce((acc, x) => acc + x, 0);\nconsole.log(sum);',
+          prompt: 'What does this code print?',
+          choices: ['10', '[1,2,3,4]', '0'],
+          correct: 0,
+          explanation: '.reduce() "folds" an array into a single value. Starting from 0, it adds each element: 0+1=1, 1+2=3, 3+3=6, 6+4=10. Reduce is powerful for aggregation!'
+        }
+      ]
+    };
+
+    /**
+     * SNIPPET ITEMS — Collectible power-ups that teach concepts.
+     * The name and description tie the game mechanic to the concept.
+     */
+    const SNIPPETS = [
+      { name: '📦 Variable Shield', desc: 'Reduces next damage by 1.', effect: 'shield', concept: 'Variables hold values — this one holds protection!' },
+      { name: '🔄 Loop Heal', desc: 'Restores 1 HP.', effect: 'heal', concept: 'Loops iterate and accumulate — this one accumulates health!' },
+      { name: '⚙️ Function Refactor', desc: 'Next correct answer deals double damage.', effect: 'power', concept: 'Functions are reusable power — refactoring makes code (and you) stronger!' },
+      { name: '🛡️ Try-Catch Block', desc: 'Blocks the next wrong answer penalty.', effect: 'catchError', concept: 'try-catch handles errors gracefully — just like this item catches your mistakes!' },
+      { name: '🔍 Debugger', desc: 'Reveals the correct answer highlight.', effect: 'hint', concept: 'console.log and debugger help you find bugs — knowledge is power!' }
+    ];
+
+
+    /* ===========================================
+       SECTION 2: GAME ENGINE
+       The Game class manages all game state.
+       It follows the "state machine" pattern:
+       the game is always in one mode (exploring,
+       combat, summary, etc.) and transitions
+       between them based on player actions.
+       =========================================== */
+    class Game {
+      constructor() {
+        this.reset();
+      }
+
+      /** Reset all state for a new game */
+      reset() {
+        this.floor = 0;         // Current floor index (0-4)
+        this.hp = 5;            // Player health
+        this.maxHp = 5;
+        this.score = 0;
+        this.mode = 'title';    // 'title' | 'explore' | 'combat' | 'summary' | 'gameover' | 'victory'
+        this.map = [];          // 2D array of tile objects
+        this.playerX = 0;
+        this.playerY = 0;
+        this.bugs = [];         // Active bugs on current floor
+        this.items = [];        // Active items on current floor
+        this.stairsX = 0;
+        this.stairsY = 0;
+        this.currentBug = null;       // Bug being fought
+        this.currentChallenge = null; // Current challenge during combat
+        this.hasShield = false;
+        this.hasPower = false;
+        this.hasCatch = false;
+        this.hasHint = false;
+        this.usedChallenges = new Set(); // Track used challenges to avoid repeats
+        this.inputLocked = false; // Prevents input during animations
+      }
+
+      /**
+       * PROCEDURAL FLOOR GENERATION
+       * Uses a random walk algorithm to create connected rooms.
+       *
+       * How it works:
+       * 1. Start with a grid of walls
+       * 2. Place the player entrance
+       * 3. Random walk to carve out floor tiles
+       * 4. Place exit stairs at the end of the walk
+       * 5. Scatter bugs and items on floor tiles
+       *
+       * A real roguelike might use BSP trees or cellular automata,
+       * but random walk is simple and creates organic-feeling layouts.
+       */
+      generateFloor() {
+        const SIZE = 9;
+        // Initialize all tiles as walls
+        this.map = Array.from({ length: SIZE }, (_, y) =>
+          Array.from({ length: SIZE }, (_, x) => ({
+            type: 'wall',
+            visible: false,   // Fog of war
+            content: null     // 'bug', 'item', 'stairs', 'entrance', null
+          }))
+        );
+
+        // Place entrance near top-left
+        this.playerX = 1;
+        this.playerY = 1;
+        this.map[1][1].type = 'floor';
+        this.map[1][1].content = 'entrance';
+
+        // Random walk to carve paths
+        let cx = 1, cy = 1;
+        const dirs = [[0,1],[0,-1],[1,0],[-1,0]];
+        let steps = 25 + this.floor * 5; // More open on higher floors
+
+        for (let i = 0; i < steps; i++) {
+          const [dx, dy] = dirs[Math.floor(Math.random() * 4)];
+          const nx = Math.max(1, Math.min(SIZE - 2, cx + dx));
+          const ny = Math.max(1, Math.min(SIZE - 2, cy + dy));
+          this.map[ny][nx].type = 'floor';
+          cx = nx;
+          cy = ny;
+        }
+
+        // Place exit stairs at end of walk
+        this.stairsX = cx;
+        this.stairsY = cy;
+        // Make sure stairs aren't on entrance
+        if (cx === 1 && cy === 1) {
+          this.stairsX = SIZE - 2;
+          this.stairsY = SIZE - 2;
+          this.map[SIZE - 2][SIZE - 2].type = 'floor';
+        }
+        this.map[this.stairsY][this.stairsX].content = 'stairs';
+
+        // Collect all floor tiles (excluding entrance and stairs) for placing entities
+        const floorTiles = [];
+        for (let y = 0; y < SIZE; y++) {
+          for (let x = 0; x < SIZE; x++) {
+            if (this.map[y][x].type === 'floor' && !this.map[y][x].content
+                && !(x === this.playerX && y === this.playerY)) {
+              floorTiles.push({ x, y });
+            }
+          }
+        }
+        this.shuffle(floorTiles);
+
+        // Place bugs
+        const floorDef = FLOORS[this.floor];
+        const bugTypes = BUG_TYPES[floorDef.level];
+        this.bugs = [];
+        for (let i = 0; i < Math.min(floorDef.bugCount, floorTiles.length); i++) {
+          const tile = floorTiles.pop();
+          const bugDef = bugTypes[i % bugTypes.length];
+          const bug = { ...bugDef, x: tile.x, y: tile.y, currentHp: bugDef.hp };
+          this.bugs.push(bug);
+          this.map[tile.y][tile.x].content = 'bug';
+        }
+
+        // Place items
+        this.items = [];
+        for (let i = 0; i < Math.min(floorDef.itemCount, floorTiles.length); i++) {
+          const tile = floorTiles.pop();
+          const snippet = SNIPPETS[Math.floor(Math.random() * SNIPPETS.length)];
+          const item = { ...snippet, x: tile.x, y: tile.y };
+          this.items.push(item);
+          this.map[tile.y][tile.x].content = 'item';
+        }
+
+        // Reveal tiles around player starting position
+        this.revealAround(this.playerX, this.playerY);
+      }
+
+      /** Reveal tiles in a radius around a position (fog of war) */
+      revealAround(x, y) {
+        for (let dy = -2; dy <= 2; dy++) {
+          for (let dx = -2; dx <= 2; dx++) {
+            const nx = x + dx, ny = y + dy;
+            if (nx >= 0 && nx < 9 && ny >= 0 && ny < 9) {
+              // Circular-ish reveal (skip far corners)
+              if (Math.abs(dx) + Math.abs(dy) <= 3) {
+                this.map[ny][nx].visible = true;
+              }
+            }
+          }
+        }
+      }
+
+      /**
+       * PLAYER MOVEMENT
+       * Checks bounds, walls, and triggers (bugs, items, stairs).
+       * Returns a status message for the info bar.
+       */
+      movePlayer(dx, dy) {
+        if (this.mode !== 'explore' || this.inputLocked) return null;
+
+        const nx = this.playerX + dx;
+        const ny = this.playerY + dy;
+
+        // Bounds check
+        if (nx < 0 || nx >= 9 || ny < 0 || ny >= 9) return null;
+
+        // Wall collision
+        if (this.map[ny][nx].type === 'wall') return null;
+
+        // Move player
+        this.playerX = nx;
+        this.playerY = ny;
+        this.revealAround(nx, ny);
+
+        // Check what's on this tile
+        const tile = this.map[ny][nx];
+
+        if (tile.content === 'bug') {
+          const bug = this.bugs.find(b => b.x === nx && b.y === ny);
+          if (bug) {
+            this.startCombat(bug);
+            return `Encountered ${bug.emoji} ${bug.name}!`;
+          }
+        }
+
+        if (tile.content === 'item') {
+          const item = this.items.find(it => it.x === nx && it.y === ny);
+          if (item) {
+            this.collectItem(item);
+            tile.content = null;
+            return `Found ${item.name}! ${item.concept}`;
+          }
+        }
+
+        if (tile.content === 'stairs') {
+          if (this.bugs.length === 0) {
+            this.completeFloor();
+            return 'Descending to next floor...';
+          } else {
+            return `Stairs found! Defeat all bugs first (${this.bugs.length} remaining).`;
+          }
+        }
+
+        return null;
+      }
+
+      /** Apply a collected item's effect */
+      collectItem(item) {
+        this.items = this.items.filter(i => i !== item);
+        this.score += 10;
+
+        switch (item.effect) {
+          case 'shield': this.hasShield = true; break;
+          case 'heal':
+            this.hp = Math.min(this.maxHp, this.hp + 1);
+            break;
+          case 'power': this.hasPower = true; break;
+          case 'catchError': this.hasCatch = true; break;
+          case 'hint': this.hasHint = true; break;
+        }
+      }
+
+      /** Enter combat mode with a bug */
+      startCombat(bug) {
+        this.mode = 'combat';
+        this.currentBug = bug;
+        this.currentChallenge = this.getChallenge();
+      }
+
+      /**
+       * Pick a random challenge for the current floor.
+       * Avoids repeating challenges within the same game.
+       */
+      getChallenge() {
+        const floorChallenges = CHALLENGES[FLOORS[this.floor].level];
+        // Find unused challenges
+        const available = floorChallenges.filter((_, i) => {
+          const key = `${this.floor}-${i}`;
+          return !this.usedChallenges.has(key);
+        });
+
+        // If all used, reset for this floor
+        const pool = available.length > 0 ? available : floorChallenges;
+        const idx = Math.floor(Math.random() * pool.length);
+        const challenge = pool[idx];
+
+        // Track usage
+        const originalIdx = floorChallenges.indexOf(challenge);
+        this.usedChallenges.add(`${this.floor}-${originalIdx}`);
+
+        return challenge;
+      }
+
+      /**
+       * ANSWER SUBMISSION
+       * Returns { correct, explanation, bugDefeated }
+       */
+      submitAnswer(choiceIndex) {
+        if (this.mode !== 'combat' || !this.currentChallenge) return null;
+
+        const challenge = this.currentChallenge;
+        const correct = choiceIndex === challenge.correct;
+
+        if (correct) {
+          // Deal damage to the bug
+          let damage = this.hasPower ? 2 : 1;
+          this.hasPower = false;
+          this.currentBug.currentHp -= damage;
+          this.score += 25;
+        } else {
+          // Bug deals damage to player
+          if (this.hasCatch) {
+            this.hasCatch = false; // Absorb the hit
+          } else if (this.hasShield) {
+            this.hasShield = false; // Shield absorbs
+          } else {
+            this.hp -= 1;
+          }
+        }
+
+        const bugDefeated = this.currentBug.currentHp <= 0;
+
+        return { correct, explanation: challenge.explanation, bugDefeated };
+      }
+
+      /** End combat — remove defeated bug or get next challenge */
+      endCombat(bugDefeated) {
+        if (bugDefeated) {
+          // Remove bug from map and list
+          const bug = this.currentBug;
+          this.map[bug.y][bug.x].content = null;
+          this.bugs = this.bugs.filter(b => b !== bug);
+          this.score += 50;
+          this.currentBug = null;
+          this.currentChallenge = null;
+          this.mode = 'explore';
+
+          if (this.hp <= 0) {
+            this.mode = 'gameover';
+            return;
+          }
+
+          return;
+        }
+
+        // Bug still alive — next challenge
+        if (this.hp <= 0) {
+          this.mode = 'gameover';
+          return;
+        }
+
+        this.currentChallenge = this.getChallenge();
+      }
+
+      /** Floor completed — show summary or victory */
+      completeFloor() {
+        if (this.floor >= 4) {
+          this.mode = 'victory';
+          this.score += 100;
+        } else {
+          this.mode = 'summary';
+        }
+      }
+
+      /** Advance to next floor */
+      nextFloor() {
+        this.floor++;
+        this.generateFloor();
+        this.mode = 'explore';
+      }
+
+      /** Fisher-Yates shuffle — the standard unbiased shuffle algorithm */
+      shuffle(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+      }
+    }
+
+
+    /* ===========================================
+       SECTION 3: RENDERER
+       Translates game state into DOM updates.
+       Keeps all DOM manipulation in one place —
+       the Game class never touches the DOM directly.
+       This separation makes the code easier to
+       test and reason about.
+       =========================================== */
+
+    const $ = id => document.getElementById(id);
+
+    function renderMap(game) {
+      const mapEl = $('map');
+      mapEl.innerHTML = '';
+
+      for (let y = 0; y < 9; y++) {
+        for (let x = 0; x < 9; x++) {
+          const tile = game.map[y][x];
+          const div = document.createElement('div');
+          div.className = 'tile';
+          div.dataset.x = x;
+          div.dataset.y = y;
+
+          if (!tile.visible) {
+            div.classList.add('fog');
+          } else if (x === game.playerX && y === game.playerY) {
+            div.classList.add('player');
+            div.textContent = '🧑‍💻';
+          } else if (tile.type === 'wall') {
+            div.classList.add('wall');
+            div.textContent = '🧱';
+          } else {
+            div.classList.add('floor');
+
+            // Show content on visible floor tiles
+            if (tile.content === 'bug') {
+              div.classList.add('bug');
+              const bug = game.bugs.find(b => b.x === x && b.y === y);
+              div.textContent = bug ? bug.emoji : '🐛';
+            } else if (tile.content === 'item') {
+              div.classList.add('item');
+              const item = game.items.find(i => i.x === x && i.y === y);
+              div.textContent = item ? '✨' : '📦';
+            } else if (tile.content === 'stairs') {
+              div.classList.add('stairs');
+              div.textContent = game.bugs.length === 0 ? '🚪' : '🔒';
+            } else if (tile.content === 'entrance') {
+              div.classList.add('entrance');
+              div.textContent = '🏁';
+            }
+          }
+
+          mapEl.appendChild(div);
+        }
+      }
+    }
+
+    function renderHUD(game) {
+      // Health hearts
+      const healthBar = $('health-bar');
+      healthBar.innerHTML = '';
+      for (let i = 0; i < game.maxHp; i++) {
+        const heart = document.createElement('span');
+        heart.className = 'heart ' + (i < game.hp ? 'full' : 'empty');
+        heart.textContent = i < game.hp ? '♥' : '♡';
+        healthBar.appendChild(heart);
+      }
+
+      $('floor-num').textContent = game.floor + 1;
+      $('score').textContent = game.score;
+    }
+
+    function renderCombat(game) {
+      const panel = $('combat-panel');
+      const bug = game.currentBug;
+      const challenge = game.currentChallenge;
+
+      if (!bug || !challenge) {
+        panel.classList.remove('active');
+        return;
+      }
+
+      panel.classList.add('active');
+      $('bug-name').textContent = `${bug.emoji} ${bug.name}`;
+      $('bug-hp').textContent = `HP: ${'❤️'.repeat(bug.currentHp)}${'🖤'.repeat(bug.hp - bug.currentHp)}`;
+
+      const typeLabels = { fix: '🔧 Fix the Bug', fill: '📝 Fill the Blank', predict: '🔮 Predict the Output' };
+      $('challenge-type').textContent = typeLabels[challenge.type] || challenge.type;
+      $('challenge-prompt').textContent = challenge.prompt;
+      $('code-block').textContent = challenge.code;
+
+      // Render answer choices
+      const choicesEl = $('choices');
+      choicesEl.innerHTML = '';
+      challenge.choices.forEach((choice, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn';
+        btn.textContent = `${i + 1}. ${choice}`;
+        btn.dataset.index = i;
+
+        // Hint effect: subtly highlight correct answer
+        if (game.hasHint && i === challenge.correct) {
+          btn.style.borderColor = 'rgba(0, 212, 255, 0.4)';
+        }
+
+        btn.addEventListener('click', () => handleAnswer(i));
+        choicesEl.appendChild(btn);
+      });
+
+      // Hide explanation and continue button
+      $('explanation').classList.remove('visible');
+      $('combat-continue').classList.remove('visible');
+    }
+
+    function showAnswerResult(game, choiceIndex, result) {
+      const buttons = document.querySelectorAll('.choice-btn');
+      buttons.forEach((btn, i) => {
+        btn.disabled = true;
+        if (i === game.currentChallenge.correct) {
+          btn.classList.add('correct');
+        } else if (i === choiceIndex && !result.correct) {
+          btn.classList.add('wrong');
+        }
+      });
+
+      // Show explanation
+      const explEl = $('explanation');
+      explEl.textContent = result.explanation;
+      explEl.classList.add('visible');
+
+      // Update bug HP display
+      if (game.currentBug) {
+        const bug = game.currentBug;
+        $('bug-hp').textContent = `HP: ${'❤️'.repeat(Math.max(0, bug.currentHp))}${'🖤'.repeat(bug.hp - Math.max(0, bug.currentHp))}`;
+      }
+
+      // Show continue button
+      $('combat-continue').classList.add('visible');
+      $('combat-continue').textContent = result.bugDefeated ? 'Bug Defeated! →' : 'Continue →';
+    }
+
+    function showScreen(screenId) {
+      document.querySelectorAll('.screen-overlay').forEach(s => s.classList.remove('active'));
+      if (screenId) {
+        $(screenId).classList.add('active');
+      }
+    }
+
+    function renderFloorSummary(game) {
+      const floorDef = FLOORS[game.floor];
+      $('summary-emoji').textContent = floorDef.emoji;
+      $('summary-title').textContent = `Floor ${floorDef.level} Clear!`;
+      $('summary-subtitle').textContent = `You've conquered "${floorDef.name}"! Here's what you learned:`;
+
+      const list = $('summary-concepts');
+      list.innerHTML = '';
+      floorDef.summary.forEach(concept => {
+        const li = document.createElement('li');
+        li.textContent = concept;
+        list.appendChild(li);
+      });
+    }
+
+    function setInfoBar(msg) {
+      if (msg) $('info-bar').textContent = msg;
+    }
+
+
+    /* ===========================================
+       SECTION 4: INPUT HANDLING
+       Supports keyboard (desktop) and touch (mobile).
+       All input funnels through the same action
+       functions, keeping the logic DRY.
+       =========================================== */
+
+    const game = new Game();
+
+    /** Direction mapping — centralizes input-to-movement translation */
+    const DIRS = {
+      up:    [0, -1],
+      down:  [0, 1],
+      left:  [-1, 0],
+      right: [1, 0]
+    };
+
+    function handleMove(dx, dy) {
+      if (game.mode !== 'explore') return;
+
+      const msg = game.movePlayer(dx, dy);
+      renderMap(game);
+      renderHUD(game);
+
+      if (msg) setInfoBar(msg);
+
+      if (game.mode === 'combat') {
+        renderCombat(game);
+      } else if (game.mode === 'gameover') {
+        $('gameover-score').textContent = `Score: ${game.score}`;
+        showScreen('gameover-screen');
+      } else if (game.mode === 'victory') {
+        $('victory-score').textContent = `Score: ${game.score}`;
+        showScreen('victory-screen');
+      } else if (game.mode === 'summary') {
+        renderFloorSummary(game);
+        showScreen('summary-screen');
+      }
+    }
+
+    function handleAnswer(choiceIndex) {
+      if (game.mode !== 'combat') return;
+
+      const result = game.submitAnswer(choiceIndex);
+      if (!result) return;
+
+      showAnswerResult(game, choiceIndex, result);
+      renderHUD(game);
+
+      // Shake animation on damage
+      if (!result.correct) {
+        const mapEl = $('map');
+        mapEl.classList.add('shake');
+        setTimeout(() => mapEl.classList.remove('shake'), 300);
+      }
+    }
+
+    function handleCombatContinue() {
+      if (game.mode !== 'combat') return;
+
+      const bugDefeated = game.currentBug.currentHp <= 0;
+      game.endCombat(bugDefeated);
+
+      $('combat-panel').classList.remove('active');
+      renderMap(game);
+      renderHUD(game);
+
+      if (game.mode === 'gameover') {
+        $('gameover-score').textContent = `Score: ${game.score}`;
+        showScreen('gameover-screen');
+      } else if (game.mode === 'combat') {
+        // Bug still alive — show next challenge
+        setTimeout(() => renderCombat(game), 300);
+      } else {
+        const remaining = game.bugs.length;
+        if (remaining > 0) {
+          setInfoBar(`Bug defeated! ${remaining} bug${remaining > 1 ? 's' : ''} remaining.`);
+        } else {
+          setInfoBar('All bugs defeated! Find the stairs 🚪 to descend.');
+        }
+      }
+    }
+
+    function startGame() {
+      game.reset();
+      game.generateFloor();
+      game.mode = 'explore';
+      showScreen(null);
+      renderMap(game);
+      renderHUD(game);
+      setInfoBar(`Floor 1: ${FLOORS[0].name} — Explore and defeat all bugs!`);
+    }
+
+    /* --- Keyboard Input --- */
+    document.addEventListener('keydown', (e) => {
+      // Title screen
+      if (game.mode === 'title' && (e.key === 'Enter' || e.key === ' ')) {
+        startGame();
+        e.preventDefault();
+        return;
+      }
+
+      // Movement
+      const keyMap = {
+        ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right',
+        w: 'up', s: 'down', a: 'left', d: 'right',
+        W: 'up', S: 'down', A: 'left', D: 'right'
+      };
+
+      if (keyMap[e.key]) {
+        const [dx, dy] = DIRS[keyMap[e.key]];
+        handleMove(dx, dy);
+        e.preventDefault();
+        return;
+      }
+
+      // Number keys for combat answers
+      if (game.mode === 'combat' && ['1', '2', '3'].includes(e.key)) {
+        const btns = document.querySelectorAll('.choice-btn:not(:disabled)');
+        if (btns.length > 0) {
+          handleAnswer(parseInt(e.key) - 1);
+        }
+        return;
+      }
+
+      // Enter/Space to continue in combat
+      if (game.mode === 'combat' && (e.key === 'Enter' || e.key === ' ')) {
+        const continueBtn = $('combat-continue');
+        if (continueBtn.classList.contains('visible')) {
+          handleCombatContinue();
+          e.preventDefault();
+        }
+        return;
+      }
+    });
+
+    /* --- Touch: D-pad buttons --- */
+    document.querySelectorAll('.dpad-btn').forEach(btn => {
+      btn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        const dir = btn.dataset.dir;
+        if (dir && DIRS[dir]) {
+          const [dx, dy] = DIRS[dir];
+          handleMove(dx, dy);
+        }
+      });
+    });
+
+    /* --- Touch: Tap tiles to move --- */
+    $('map').addEventListener('click', (e) => {
+      const tile = e.target.closest('.tile');
+      if (!tile || game.mode !== 'explore') return;
+
+      const tx = parseInt(tile.dataset.x);
+      const ty = parseInt(tile.dataset.y);
+      const dx = tx - game.playerX;
+      const dy = ty - game.playerY;
+
+      // Only allow moves to adjacent tiles (1 step)
+      if (Math.abs(dx) + Math.abs(dy) === 1) {
+        handleMove(dx, dy);
+      }
+    });
+
+    /* --- Touch: Swipe on map --- */
+    let touchStartX, touchStartY;
+
+    $('map-container').addEventListener('touchstart', (e) => {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+    }, { passive: true });
+
+    $('map-container').addEventListener('touchend', (e) => {
+      if (touchStartX == null) return;
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      const dy = e.changedTouches[0].clientY - touchStartY;
+      const absDx = Math.abs(dx), absDy = Math.abs(dy);
+
+      // Minimum swipe distance (30px), ignore taps
+      if (Math.max(absDx, absDy) < 30) return;
+
+      if (absDx > absDy) {
+        handleMove(dx > 0 ? 1 : -1, 0);
+      } else {
+        handleMove(0, dy > 0 ? 1 : -1);
+      }
+
+      touchStartX = null;
+      touchStartY = null;
+    }, { passive: true });
+
+    /* --- Combat continue button --- */
+    $('combat-continue').addEventListener('click', handleCombatContinue);
+
+    /* --- Screen buttons --- */
+    $('start-btn').addEventListener('click', startGame);
+    $('retry-btn').addEventListener('click', startGame);
+    $('replay-btn').addEventListener('click', startGame);
+    $('next-floor-btn').addEventListener('click', () => {
+      game.nextFloor();
+      showScreen(null);
+      renderMap(game);
+      renderHUD(game);
+      setInfoBar(`Floor ${game.floor + 1}: ${FLOORS[game.floor].name} — Explore and defeat all bugs!`);
+    });
+
+    /* --- Show D-pad on touch devices --- */
+    if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+      $('dpad').classList.add('visible');
+    }
+  </script>
+</body>
+</html>
