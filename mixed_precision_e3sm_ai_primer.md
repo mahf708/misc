@@ -117,7 +117,265 @@ Current E3SM mixed precision research focuses on:
 4. **Performance profiling**: Identifying optimal precision placement
 5. **Verification frameworks**: Automated testing of mixed precision configurations
 
-## 4. Mixed Precision in AI and Machine Learning
+## 4. Kokkos and Mixed Precision in EAMxx/SCREAM
+
+EAMxx (formerly SCREAM — the Simple Cloud-Resolving E3SM Atmosphere Model) is the next-generation atmosphere component of E3SM, rewritten from the ground up in C++ with Kokkos as its performance-portability layer. This makes EAMxx the natural beachhead for mixed precision in E3SM, and Kokkos is the key enabler.
+
+### 4.1 Kokkos: Performance Portability Foundation
+
+Kokkos is a C++ programming model for writing performance-portable code across heterogeneous architectures (CPUs, NVIDIA/AMD/Intel GPUs). It provides:
+
+- **Execution spaces**: Abstract where code runs (Serial, OpenMP, CUDA, HIP, SYCL)
+- **Memory spaces**: Abstract where data lives (HostSpace, CudaSpace, HIPSpace)
+- **Views**: Multi-dimensional arrays with configurable memory layout and scalar type
+- **Parallel dispatch**: `parallel_for`, `parallel_reduce`, `parallel_scan`
+- **Team policies**: Hierarchical parallelism (league → team → thread → vector)
+
+**Why Kokkos matters for mixed precision**: Kokkos Views and kernels are *templated on scalar type*. This means the precision of an entire computational kernel can, in principle, be changed by changing a single template parameter — without rewriting the algorithm.
+
+### 4.2 Technical Approach: Scalar Type Parameterization
+
+The most natural way to introduce mixed precision into EAMxx via Kokkos is through **scalar type parameterization** at the process (physics package) level.
+
+#### Current State
+
+EAMxx currently uses a global `Real` type alias (typically `double`) throughout its codebase:
+
+```cpp
+// Current EAMxx convention
+using Real = double;  // or controlled via build-time macro
+using view_1d = Kokkos::View<Real*>;
+using view_2d = Kokkos::View<Real**>;
+```
+
+#### Proposed Strategy: Per-Process Scalar Types
+
+The key idea is to make each atmosphere process (physics package) templated on its scalar type, while maintaining higher precision at process boundaries:
+
+```cpp
+// Process-level scalar type parameterization
+template <typename ScalarT = double>
+class SHOCProcess : public AtmosphereProcess {
+  using view_2d = Kokkos::View<ScalarT**>;
+  // Internal computation uses ScalarT (could be float)
+  void run_impl(...) {
+    // All internal SHOC computation in ScalarT precision
+    Kokkos::parallel_for(..., KOKKOS_LAMBDA(int i) {
+      // Physics at ScalarT precision
+    });
+  }
+};
+
+// Instantiate at desired precision
+using SHOCFloat  = SHOCProcess<float>;   // FP32 version
+using SHOCDouble = SHOCProcess<double>;  // FP64 version
+```
+
+#### Precision Conversion at Process Boundaries
+
+The atmosphere driver would manage precision transitions between processes:
+
+```cpp
+// In the atmosphere driver process-dispatch loop
+void AtmosphereDriver::run(double dt) {
+  // State is always stored in full precision
+  auto& state_fp64 = m_state;  // Kokkos::View<double**>
+
+  // Downcast to FP32 for SHOC
+  auto state_fp32 = precision_cast<float>(state_fp64);
+  m_shoc_fp32->run(dt, state_fp32);
+  // Upcast result back
+  precision_cast_back(state_fp32, state_fp64);
+
+  // P3 microphysics stays in FP64 (numerically sensitive)
+  m_p3_fp64->run(dt, state_fp64);
+
+  // Radiation in FP32 (tolerant of reduced precision)
+  auto state_fp32_rad = precision_cast<float>(state_fp64);
+  m_rrtmgp_fp32->run(dt, state_fp32_rad);
+  precision_cast_back(state_fp32_rad, state_fp64);
+}
+```
+
+### 4.3 Kokkos::View and Pack-Level Considerations
+
+EAMxx makes heavy use of **packs** — SIMD-friendly data bundles that group multiple vertical levels into a single unit for vectorization:
+
+```cpp
+// EAMxx Pack type
+template <typename ScalarT, int N>
+struct Pack {
+  ScalarT data[N];
+  // Arithmetic operators for SIMD-style computation
+};
+
+// Current usage: Pack<Real, SCREAM_PACK_SIZE>
+// Mixed precision: Pack<float, SCREAM_PACK_SIZE> for FP32 processes
+```
+
+**Key insight**: When switching from `Pack<double, 16>` to `Pack<float, 16>`, memory footprint halves while the pack count stays the same. Alternatively, `Pack<float, 32>` could double the number of vertical levels per pack, improving vectorization on architectures with wide SIMD or warp-level parallelism.
+
+**GPU considerations**: On GPUs, the pack size is typically 1 (scalar), so the mixed precision benefit is primarily:
+- Halved memory bandwidth (often the bottleneck)
+- Potential use of FP16/TF32 tensor cores for batched operations
+- Doubled register capacity for the same data
+
+### 4.4 Process-by-Process Precision Analysis
+
+Not all EAMxx physics packages are equally amenable to reduced precision. Here is a recommended classification:
+
+#### Likely Safe at FP32
+
+| Process | Rationale |
+|---------|-----------|
+| **SHOC** (turbulence) | Local column physics, no long-range accumulation |
+| **RRTMGP** (radiation) | Already uses FP32 internally in reference implementation |
+| **MAC/MIC aero** | Aerosol microphysics, local tendencies |
+| **Surface fluxes** | Short-timescale, local computation |
+| **Diagnostics/output** | Non-prognostic, FP32 output is standard |
+
+#### Requires Caution (Mixed FP32/FP64)
+
+| Process | Concern |
+|---------|---------|
+| **P3** (microphysics) | Complex conditional logic, mass conservation across many species |
+| **Nudging** | Small increments relative to state — precision matters |
+| **Tracer transport** | Long-term conservation requires careful accumulation |
+
+#### Should Remain FP64
+
+| Process | Concern |
+|---------|---------|
+| **Dynamics (HOMME/SE)** | Pressure gradient, energy conservation over long integrations |
+| **Vertical remapping** | Conservation of mass/energy across vertical levels |
+| **Time integration** | Accumulation errors compound over millions of timesteps |
+
+### 4.5 Implementation Roadmap for EAMxx
+
+**Phase 1: Infrastructure (Low Risk)**
+1. Introduce a `ScalarT` template parameter in the `AtmosphereProcess` base class
+2. Add `precision_cast` utilities for Kokkos::View conversions
+3. Build-time CMake option: `-DSCREAM_MIXED_PRECISION=ON`
+4. Implement precision-conversion cost tracking (timers around casts)
+
+**Phase 2: Pilot Process — RRTMGP (Medium Risk)**
+1. RRTMGP's reference Fortran already uses FP32 internally
+2. Template the EAMxx RRTMGP interface on `ScalarT`
+3. Run RRTMGP at FP32, everything else at FP64
+4. Validate: column-level radiative fluxes, TOA energy balance
+
+**Phase 3: Expand to SHOC and Aerosols (Medium Risk)**
+1. Template SHOC on `ScalarT`, run at FP32
+2. Validate: boundary layer height, TKE profiles, cloud fraction
+3. Template aerosol processes on `ScalarT`
+4. Validate: aerosol burdens, AOD, cloud-aerosol interactions
+
+**Phase 4: Full Mixed-Precision Configuration (Higher Risk)**
+1. Configure per-process precision via runtime YAML:
+   ```yaml
+   atmosphere_processes:
+     shoc:
+       precision: float
+     p3:
+       precision: double
+     rrtmgp:
+       precision: float
+     homme:
+       precision: double
+   ```
+2. Run multi-year climate simulations
+3. Statistical validation against FP64 reference
+4. Performance benchmarking on target platforms
+
+### 4.6 Testing and Verification Strategy
+
+EAMxx's existing testing infrastructure provides a strong foundation:
+
+**Unit Tests (per-process)**:
+- Run each process at FP32 and FP64
+- Compare outputs within tolerance (e.g., relative error < 10^-5)
+- Test edge cases: very cold/hot temperatures, extreme moisture
+
+**Integration Tests**:
+- CIME-based regression tests with mixed precision configurations
+- Bit-for-bit comparisons where expected
+- Statistical tests (e.g., CESM-ECT style) for climate equivalence
+
+**Property Preservation Tests**:
+- Mass conservation: global dry air mass drift < threshold
+- Energy conservation: TOA imbalance < 0.1 W/m²
+- Tracer conservation: global tracer mass drift monitoring
+
+**Performance Tests**:
+- Kernel-level roofline analysis at each precision
+- Full-model throughput (SYPD — simulated years per day)
+- Memory high-water mark comparison
+
+### 4.7 Coordination with the Wider E3SM Project
+
+Mixed precision in EAMxx cannot happen in isolation. EAMxx couples with other E3SM components through the MCT or NUOPC coupler, and precision decisions must be coordinated across the project.
+
+#### The Coupler Interface Challenge
+
+E3SM components exchange fields through the coupler (fluxes, state variables, forcing). Currently these are FP64. Key questions:
+
+- **Should coupler fields remain FP64?** Recommended yes, at least initially. The coupler is the "contract" between components — changing its precision affects everyone.
+- **Where does conversion happen?** At the EAMxx boundary, before/after coupler calls. EAMxx owns its internal precision; the coupler interface stays FP64.
+
+```
+┌──────────────┐    FP64    ┌──────────┐    FP64    ┌──────────────┐
+│   EAMxx      │◄──────────►│  Coupler  │◄──────────►│  MPAS-Ocean  │
+│ (mixed FP32/ │            │  (FP64)   │            │   (FP64)     │
+│  FP64 inside)│            └──────────┘            └──────────────┘
+└──────────────┘                 ▲
+                                 │ FP64
+                            ┌──────────┐
+                            │   ELM    │
+                            │  (FP64)  │
+                            └──────────┘
+```
+
+#### Component-by-Component Coordination
+
+**MPAS-Ocean**: The ocean model has its own Fortran codebase. Mixed precision in the ocean is a separate (and active) research area, but EAMxx need not wait for it. The coupler interface insulates the two.
+
+**ELM (Land Model)**: Fortran-based, currently FP64. Land-atmosphere coupling (surface fluxes, albedo) should remain FP64 at the interface.
+
+**MOSART (River Routing)**: Relatively low computational cost; mixed precision here has minimal payoff.
+
+**Sea Ice (MPAS-SI)**: Similar to ocean — separate codebase, coupler-insulated.
+
+#### Recommended Coordination Strategy
+
+1. **EAMxx leads**: As the C++/Kokkos component, EAMxx is best positioned to pioneer mixed precision. Other components can follow independently.
+
+2. **Coupler stays FP64**: Do not change the coupler precision. This is the simplest, safest approach and decouples component-level decisions.
+
+3. **Shared validation tools**: Develop E3SM-wide tools for:
+   - Precision sensitivity analysis (perturbation studies)
+   - Conservation monitoring across components
+   - Statistical climate equivalence testing
+
+4. **E3SM-wide precision policy**: Propose an E3SM project policy document covering:
+   - Allowed precision levels per component
+   - Coupler interface precision requirements
+   - Validation requirements for new precision configurations
+   - Reporting standards for mixed precision results
+
+5. **Phased rollout across E3SM**:
+   - **Phase A**: EAMxx internal mixed precision (no coupler changes)
+   - **Phase B**: Optional FP32 coupler fields for insensitive variables (e.g., diagnostic fields)
+   - **Phase C**: Other components adopt mixed precision independently
+   - **Phase D**: End-to-end mixed precision E3SM configuration
+
+#### Community Engagement
+
+- **E3SM Mixed Precision Working Group**: Propose formation to coordinate across teams
+- **Design documents**: RFC-style proposals before major changes
+- **Regular benchmarking**: Shared performance/accuracy results across components
+- **Training**: Workshops on Kokkos mixed precision patterns for E3SM developers
+
+## 5. Mixed Precision in AI and Machine Learning
 
 ### The AI Revolution in Mixed Precision
 
@@ -180,11 +438,11 @@ Modern deep learning has pioneered mixed precision computing, driven by:
 - AMD MI300
 - Apple Neural Engine
 
-## 5. The Nexus: E3SM Meets AI
+## 6. The Nexus: E3SM Meets AI
 
 The intersection of E3SM and AI represents one of the most exciting frontiers in computational climate science. Mixed precision plays a crucial role in making these hybrid approaches practical.
 
-### 5.1 Machine Learning for Climate Modeling
+### 6.1Machine Learning for Climate Modeling
 
 #### Parameterization Emulation
 
@@ -222,7 +480,7 @@ The intersection of E3SM and AI represents one of the most exciting frontiers in
 - **Mixed Precision**: INT8 quantized models for real-time detection
 - **Deployment**: Online analysis during E3SM simulations
 
-### 5.2 Physics-Informed Machine Learning
+### 6.2 Physics-Informed Machine Learning
 
 #### Hybrid Modeling
 
@@ -247,7 +505,7 @@ The intersection of E3SM and AI represents one of the most exciting frontiers in
 
 **Applications**: Inverse problems, data assimilation, parameter estimation
 
-### 5.3 Climate Data Processing Pipelines
+### 6.3 Climate Data Processing Pipelines
 
 #### Preprocessing
 
@@ -270,7 +528,7 @@ The intersection of E3SM and AI represents one of the most exciting frontiers in
 - **Hardware**: GPU clusters for throughput
 - **Format**: FP16/INT8 for production deployment
 
-### 5.4 Emerging Applications
+### 6.4 Emerging Applications
 
 #### Digital Twins
 
@@ -306,9 +564,9 @@ The intersection of E3SM and AI represents one of the most exciting frontiers in
   - E3SM interface in FP32
   - Reward computation in FP32
 
-## 6. Implementation Best Practices
+## 7. Implementation Best Practices
 
-### 6.1 E3SM Mixed Precision Guidelines
+### 7.1 E3SM Mixed Precision Guidelines
 
 **Phase 1: Profiling**
 1. Identify computational hotspots
@@ -333,7 +591,7 @@ The intersection of E3SM and AI represents one of the most exciting frontiers in
 3. Optimize data layout
 4. Profile memory bandwidth
 
-### 6.2 AI-E3SM Integration Guidelines
+### 7.2 AI-E3SM Integration Guidelines
 
 **Data Pipeline**
 1. Store E3SM training data in efficient formats (Zarr, HDF5 with compression)
@@ -359,7 +617,7 @@ The intersection of E3SM and AI represents one of the most exciting frontiers in
 3. Climate simulation validation (multi-year runs)
 4. Comparison with observations and benchmarks
 
-### 6.3 Hardware Considerations
+### 7.3 Hardware Considerations
 
 **CPU-Based E3SM**
 - Intel Xeon: AVX-512 FP16 support (Sapphire Rapids+)
@@ -376,7 +634,7 @@ The intersection of E3SM and AI represents one of the most exciting frontiers in
 - GPU for ML inference and FP16/FP32 physics
 - Smart data movement between devices
 
-## 7. Case Studies
+## 8. Case Studies
 
 ### Case Study 1: Cloud Parameterization with CNNs
 
@@ -422,7 +680,7 @@ The intersection of E3SM and AI represents one of the most exciting frontiers in
 - 20× computational savings
 - Enabled multi-century high-resolution simulations
 
-## 8. Challenges and Future Directions
+## 9. Challenges and Future Directions
 
 ### Current Challenges
 
@@ -473,7 +731,7 @@ The intersection of E3SM and AI represents one of the most exciting frontiers in
 5. **Benchmarking**: Standard test cases and metrics
 6. **Community building**: Training, workshops, collaboration
 
-## 9. Conclusions
+## 10. Conclusions
 
 Mixed precision computing sits at the nexus of E3SM and AI, offering transformative potential for climate science:
 
@@ -503,12 +761,19 @@ The path forward requires collaboration between climate scientists, AI researche
 
 Mixed precision is not just an optimization technique—it's an enabler of the next generation of climate science, where exascale physics-based models and powerful AI systems work together to address humanity's most pressing challenge: understanding and predicting our changing climate.
 
-## 10. Resources and Further Reading
+## 11. Resources and Further Reading
 
 ### E3SM Resources
 - E3SM Project: https://e3sm.org
 - E3SM Documentation: https://docs.e3sm.org
 - E3SM GitHub: https://github.com/E3SM-Project
+
+### Kokkos and EAMxx Resources
+- Kokkos GitHub: https://github.com/kokkos/kokkos
+- Kokkos Tutorials: https://github.com/kokkos/kokkos-tutorials
+- EAMxx/SCREAM: https://github.com/E3SM-Project/E3SM (components/eamxx)
+- Trott et al., "Kokkos 3: Programming Model Extensions for the Exascale Era" (2022)
+- Bertagna et al., "SCREAM: A Performance-Portable Atmosphere Model" (2023)
 
 ### Mixed Precision Computing
 - IEEE 754 Standard for Floating-Point Arithmetic
@@ -538,4 +803,4 @@ Mixed precision is not just an optimization technique—it's an enabler of the n
 
 *This primer was prepared for the E3SM and AI research community to facilitate understanding and adoption of mixed precision techniques at the intersection of climate modeling and artificial intelligence.*
 
-*Version 1.0 - March 2026*
+*Version 1.1 - March 2026 (added Kokkos/EAMxx technical deep-dive)*
