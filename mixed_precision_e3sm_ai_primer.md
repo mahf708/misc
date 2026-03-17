@@ -215,10 +215,12 @@ struct Pack {
 
 **Key insight**: When switching from `Pack<double, 16>` to `Pack<float, 16>`, memory footprint halves while the pack count stays the same. Alternatively, `Pack<float, 32>` could double the number of vertical levels per pack, improving vectorization on architectures with wide SIMD or warp-level parallelism.
 
-**GPU considerations**: On GPUs, the pack size is typically 1 (scalar), so the mixed precision benefit is primarily:
-- Halved memory bandwidth (often the bottleneck)
-- Potential use of FP16/TF32 tensor cores for batched operations
+**GPU considerations**: On GPUs, the pack size is typically 1 (scalar), so the mixed precision benefit from FP64→FP32 is primarily:
+- Halved memory bandwidth (often the bottleneck for EAMxx kernels)
 - Doubled register capacity for the same data
+- 2× FP32 throughput vs FP64 on most GPU architectures
+
+Note: FP16/BF16 tensor cores are *not* relevant here — they accelerate dense matrix-multiply-accumulate (GEMMA) operations, not the pointwise and stencil patterns that dominate EAMxx physics kernels. Tensor cores become relevant only for embedded ML inference (see Section 4.5).
 
 ### 4.4 Process-by-Process Precision Analysis
 
@@ -250,7 +252,85 @@ Not all EAMxx physics packages are equally amenable to reduced precision. Here i
 | **Vertical remapping** | Conservation of mass/energy across vertical levels |
 | **Time integration** | Accumulation errors compound over millions of timesteps |
 
-### 4.5 Implementation Roadmap for EAMxx
+### 4.5 Why Not Half Precision (FP16/BF16) for Physics?
+
+A natural question — especially given the AI world's enthusiasm for FP16/BF16/FP8 — is whether EAMxx physics should target precision below FP32. **The answer is no, with one important exception.**
+
+#### FP16 (IEEE Half): Insufficient Dynamic Range
+
+FP16 has only 5 exponent bits, giving a representable range of roughly 6×10^-8 to 65504. This is fatally inadequate for atmospheric physics:
+
+| Variable | Typical Range | FP16 Viable? |
+|----------|---------------|---------------|
+| Pressure | 0.01–1013 hPa | Marginal (loses top-of-atmosphere) |
+| Temperature | 180–330 K | Yes, but no headroom |
+| Specific humidity | 10^-7–10^-2 kg/kg | **No** — spans 5 orders of magnitude below FP16 floor |
+| Cloud ice mixing ratio | 10^-12–10^-3 kg/kg | **No** — underflows to zero |
+| Vertical velocity | 10^-4–10^1 m/s | Marginal |
+| Radiative fluxes | 0–1400 W/m² | Yes, but limited precision (~3 digits) |
+
+Any quantity that spans more than ~4 orders of magnitude, or that requires differencing similar large values (pressure gradients, advective tendencies), will produce garbage in FP16.
+
+#### BF16 (Brain Float): Sufficient Range, Insufficient Precision
+
+BF16 uses FP32's exponent (8 bits) so it handles the dynamic range, but has only 7 mantissa bits — roughly **2-3 decimal digits** of precision. For climate physics:
+
+- **Pressure gradient force**: Differencing pressures of ~500.1 and ~500.3 hPa requires more than 3 significant digits to get a meaningful gradient
+- **Conservation accounting**: Global mass conservation to 1 part in 10^6 is impossible with 3-digit precision
+- **Tendency accumulation**: Adding small tendencies (~0.001 K/s) to large state variables (~280 K) loses the tendency entirely in BF16
+
+BF16 was designed for neural network weights and activations, where stochastic gradient descent is inherently noise-tolerant. Deterministic physics is not.
+
+#### No Hardware Upside on CPUs
+
+EAMxx's dynamics and much of its physics run on CPUs. Modern x86 processors (Intel Sapphire Rapids, AMD Zen 4) execute FP32 and FP64 natively with full-width SIMD. FP16 support exists but is oriented toward AI inference intrinsics (VNNI, AMX), not general scalar/stencil computation. There is **no FP16 speedup for typical EAMxx kernels on CPUs**.
+
+The real CPU win is FP64→FP32: double the SIMD width, half the memory bandwidth, and the ALUs already support it natively.
+
+#### The Exception: Embedded ML Inference
+
+The one place where FP16/BF16/INT8 *does* belong in EAMxx is inside **machine-learned parameterizations** that are called from EAMxx but execute as self-contained neural network inference:
+
+```
+┌─────────────── EAMxx Process Dispatch ───────────────┐
+│                                                       │
+│  State (FP64) ──► downcast ──► SHOC (FP32) ──► ...  │
+│                                                       │
+│  State (FP64) ──► downcast ──► ML-Radiation ─────►   │
+│                                  │                    │
+│                                  ▼                    │
+│                          ┌──────────────┐             │
+│                          │ Neural Net   │             │
+│                          │ FP16/BF16    │  ◄── Tensor │
+│                          │ inference    │      cores  │
+│                          │ (matmul-     │      used   │
+│                          │  heavy)      │      here   │
+│                          └──────────────┘             │
+│                                  │                    │
+│                          upcast to FP32               │
+│                          ──► tendencies ──► ...       │
+└───────────────────────────────────────────────────────┘
+```
+
+This works because:
+- Neural networks are **trained to be robust** to reduced precision
+- The operations are **dense matmuls** that hit tensor core fast paths
+- Quantization-aware training can target INT8 for even more speedup
+- The ML model's outputs are **accumulated in FP32** before coupling back
+
+#### Recommendation
+
+| Precision | Use in EAMxx | Rationale |
+|-----------|-------------|-----------|
+| **FP64** | Dynamics, time integration, conservation-critical paths | Required for long-term stability |
+| **FP32** | Most physics parameterizations | The practical target — real speedup, sufficient accuracy |
+| **BF16/FP16** | Only inside embedded ML inference kernels | Matmul-heavy, noise-tolerant, tensor core compatible |
+| **INT8** | Only for quantized ML model deployment | Further speedup for inference, with quantization-aware training |
+| **FP8** | Not recommended | No use case in climate physics or current ML integration |
+
+**Bottom line**: The mixed precision story in EAMxx is FP64→FP32 for physics, with FP16/BF16 reserved exclusively for the AI integration layer. Do not invest engineering effort in making EAMxx physics kernels run at half precision — the accuracy loss is unacceptable and the hardware doesn't reward it.
+
+### 4.6 Implementation Roadmap for EAMxx
 
 **Phase 1: Infrastructure (Low Risk)**
 1. Introduce a `ScalarT` template parameter in the `AtmosphereProcess` base class
@@ -287,7 +367,7 @@ Not all EAMxx physics packages are equally amenable to reduced precision. Here i
 3. Statistical validation against FP64 reference
 4. Performance benchmarking on target platforms
 
-### 4.6 Testing and Verification Strategy
+### 4.7 Testing and Verification Strategy
 
 EAMxx's existing testing infrastructure provides a strong foundation:
 
@@ -311,7 +391,7 @@ EAMxx's existing testing infrastructure provides a strong foundation:
 - Full-model throughput (SYPD — simulated years per day)
 - Memory high-water mark comparison
 
-### 4.7 Coordination with the Wider E3SM Project
+### 4.8 Coordination with the Wider E3SM Project
 
 Mixed precision in EAMxx cannot happen in isolation. EAMxx couples with other E3SM components through the MCT or NUOPC coupler, and precision decisions must be coordinated across the project.
 
